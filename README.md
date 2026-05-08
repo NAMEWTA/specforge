@@ -8,13 +8,13 @@ SpecForge is a unified workflow orchestration platform that bridges specificatio
 
 SpecForge integrates proven design patterns from multiple mature projects:
 
-- **[OpenSpec](references/reference-projects-analysis.md#21-openspec)** — Dual-directory separation model, artifact DAG, Progressive Disclosure
-- **[gstack](references/reference-projects-analysis.md#22-gstack)** — Preamble-tier initialization, multi-perspective review system
-- **[superpowers-zh](references/reference-projects-analysis.md#23-superpowers-zh)** — Skill chain orchestration, Iron Laws enforcement, subagent-driven development
-- **[spec-kit](references/reference-projects-analysis.md#25-spec-kit)** — Extension hooks, Constitution governance, explicit Handoffs
-- **[skills-main](references/reference-projects-analysis.md#24-skills-main)** — Skill creation methodology, progressive disclosure patterns
-- **[claude-task-master](references/reference-projects-analysis.md#26-claude-task-master)** — Handlebars templating, complexity analysis
-- **[grill-me](references/reference-projects-analysis.md#27-grill-me)** — Multi-perspective questioning frameworks
+- **[OpenSpec]** — Dual-directory separation model, artifact DAG, Progressive Disclosure
+- **[gstack]** — Preamble-tier initialization, multi-perspective review system
+- **[superpowers-zh]** — Skill chain orchestration, Iron Laws enforcement, subagent-driven development
+- **[spec-kit]** — Extension hooks, Constitution governance, explicit Handoffs
+- **[skills-main]** — Skill creation methodology, progressive disclosure patterns
+- **[claude-task-master]** — Handlebars templating, complexity analysis
+- **[grill-me]** — Multi-perspective questioning frameworks
 
 See [reference-projects-analysis.md](references/reference-projects-analysis.md) for detailed analysis of each project's unique contributions.
 
