@@ -1,0 +1,48 @@
+# 依赖目录
+node_modules/
+
+# 包管理缓存
+.pnpm-store/
+.npm/
+.yarn/
+
+# 构建与类型检查产物
+dist/
+build/
+*.tsbuildinfo
+
+# 测试与覆盖率产物
+coverage/
+.nyc_output/
+.vitest/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 临时与缓存目录
+tmp/
+temp/
+.cache/
+
+# 本地环境变量
+.env
+.env.*
+!.env.example
+
+# 系统与编辑器文件
+.DS_Store
+Thumbs.db
+.idea/
+
+# VS Code 本地配置（保留推荐扩展）
+.vscode/*
+!.vscode/extensions.json
+
+# 本地初始化产物（仅仓库根目录）
+/.specforge/
+/specforge/

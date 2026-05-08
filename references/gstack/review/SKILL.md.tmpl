@@ -1,0 +1,282 @@
+---
+name: review
+preamble-tier: 4
+version: 1.0.0
+description: |
+  上线前 PR 审查。分析相对于基分支的 diff，检查 SQL 安全、LLM 信任边界违例、
+  条件副作用以及其他结构性问题。适用于用户说“review this PR”、“code review”、
+  “pre-landing review”或“check my diff”时。用户即将合并或落地代码变更时，主动建议使用本技能。(gstack)
+allowed-tools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Grep
+  - Glob
+  - Agent
+  - AskUserQuestion
+  - WebSearch
+triggers:
+  - review this pr
+  - code review
+  - check my diff
+  - pre-landing review
+---
+
+{{PREAMBLE}}
+
+{{BASE_BRANCH_DETECT}}
+
+# 上线前 PR 审查
+
+你正在运行 `/review` 工作流。分析当前分支相对于基分支的 diff，找出测试无法捕获的结构性问题。
+
+---
+
+## Step 1: 检查分支
+
+1. 运行 `git branch --show-current` 获取当前分支。
+2. 如果当前就在基分支上，输出：**"Nothing to review — you're on the base branch or have no changes against it."** 然后停止。
+3. 运行 `git fetch origin <base> --quiet && git diff origin/<base> --stat` 检查是否存在 diff。如果没有 diff，输出同样的信息并停止。
+
+---
+
+{{SCOPE_DRIFT}}
+
+{{PLAN_COMPLETION_AUDIT_REVIEW}}
+
+## Step 2: 读取清单
+
+读取 `.claude/skills/review/checklist.md`。
+
+**如果无法读取该文件，立即停止并报告错误。** 没有清单就不要继续。
+
+---
+
+## Step 2.5: 检查 Greptile 审查评论
+
+读取 `.claude/skills/review/greptile-triage.md`，并按其中的抓取、过滤、分类和 **升级检测** 步骤执行。
+
+**如果没有 PR、`gh` 失败、API 返回错误，或者没有任何 Greptile 评论：** 静默跳过此步骤。Greptile 集成是附加能力——没有它，审查也能正常工作。
+
+**如果找到了 Greptile 评论：** 记录分类结果（VALID & ACTIONABLE、VALID BUT ALREADY FIXED、FALSE POSITIVE、SUPPRESSED）——第 5 步会用到。
+
+---
+
+## Step 3: 获取 diff
+
+先抓取最新的基分支，避免因为本地状态过时而产生误报：
+
+```bash
+git fetch origin <base> --quiet
+```
+
+运行 `git diff origin/<base>` 获取完整 diff。这会包含相对于最新基分支的已提交和未提交变更。
+
+## Step 3.4: 感知工作区的队列状态（仅供参考）
+
+检查这个 PR 声称的 VERSION 是否仍然对应队列里的空位。这里只是建议，不会阻塞审查；它只是在提醒你落地顺序风险。
+
+```bash
+BRANCH_VERSION=$(git show HEAD:VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "")
+BASE_BRANCH=$(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || echo main)
+BASE_VERSION=$(git show origin/$BASE_BRANCH:VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "")
+QUEUE_JSON=$(bun run bin/gstack-next-version \
+  --base "$BASE_BRANCH" \
+  --bump patch \
+  --current-version "$BASE_VERSION" 2>/dev/null || echo '{"offline":true}')
+NEXT_SLOT=$(echo "$QUEUE_JSON" | jq -r '.version // empty')
+CLAIMED_COUNT=$(echo "$QUEUE_JSON" | jq -r '.claimed | length // 0')
+OFFLINE=$(echo "$QUEUE_JSON" | jq -r '.offline // false')
+```
+
+- 如果 `OFFLINE=true`：跳过这一段（没有信号可报告）。
+- 否则，在审查输出中只加一行：`Version claimed: v<BRANCH_VERSION>. Queue: <CLAIMED_COUNT> PR(s) ahead. <VERDICT>`。其中 VERDICT 要么是 `Slot free`（如果 `BRANCH_VERSION >= NEXT_SLOT`），要么是 `⚠ queue moved — rerun /ship to reconcile v<BRANCH_VERSION> → v<NEXT_SLOT>`。
+
+---
+
+## Step 3.5: Slop 扫描（仅供参考）
+
+对变更文件运行 slop 扫描，找出 AI 代码质量问题（空 catch、冗余 `return await`、过度复杂的抽象）：
+
+```bash
+bun run slop:diff origin/<base> 2>/dev/null || true
+```
+
+如果报告了结果，就把它们作为信息性诊断写进审查输出。Slop 发现只是建议项，绝不阻塞流程。如果 `slop:diff` 不可用（例如未安装 slop-scan），则静默跳过。
+
+---
+
+{{LEARNINGS_SEARCH}}
+
+## Step 4: 关键审查（核心 review）
+
+把清单里的 CRITICAL 类别应用到 diff 上：
+SQL & Data Safety、Race Conditions & Concurrency、LLM Output Trust Boundary、Shell Injection、Enum & Value Completeness。
+
+同时检查清单中剩余的 INFORMATIONAL 类别（Async/Sync Mixing、Column/Field Name Safety、LLM Prompt Issues、Type Coercion、View/Frontend、Time Window Safety、Completeness Gaps、Distribution & CI/CD）。
+
+**Enum & Value Completeness 需要读取 diff 外部的代码。** 当 diff 引入新的 enum 值、status、tier 或 type 常量时，使用 Grep 查找引用同级值的所有文件，然后 Read 这些文件，检查新值是否被处理。这个类别不能只看 diff。
+
+**先验证再建议：** 当你要推荐某种修复模式时（尤其是并发、缓存、鉴权或框架相关行为）：
+- 先确认这个模式在当前框架版本里确实还是最佳实践
+- 先确认新版里是否已经有内建方案，避免推荐过时的 workaround
+- 先用当前文档验证 API 签名（API 会随着版本变化）
+
+这只需要几秒，却能避免推荐过时模式。如果 WebSearch 不可用，就说明这一点，并用已有知识继续。
+
+按照清单里规定的输出格式来。尊重 suppression——不要标记 `DO NOT flag` 部分列出的内容。
+
+{{CONFIDENCE_CALIBRATION}}
+
+---
+
+{{REVIEW_ARMY}}
+
+---
+
+## Step 5: Fix-First 审查
+
+**每一个发现都要有动作，不只是 critical。**
+
+{{CROSS_REVIEW_DEDUP}}
+
+### Step 5a: 为每个发现分类
+
+根据 `checklist.md` 里的 Fix-First Heuristic，把每个发现分类为 AUTO-FIX 或 ASK。
+Critical 发现更倾向 ASK；informational 发现更机械，通常更适合 AUTO-FIX。
+
+**Test stub 覆盖规则：** 任何带有 `test_stub` 字段的发现（由 specialist 生成）都会无条件重新归类为 ASK，不管原始分类是什么。展示 ASK 项时，要给出拟议的测试文件路径和测试代码。由用户批准或跳过测试创建；如果批准，就写入修复和测试文件。测试文件路径要按项目约定从发现的 `path` 推导（RSpec 用 `spec/`，Jest/Vitest 用 `__tests__/`，pytest 用 `test_` 前缀，Go 用 `_test.go` 后缀）。如果测试文件已经存在，就追加新测试。输出：`[FIXED + TEST] [file:line] Problem -> fix + test at [test_path]`
+
+### Step 5b: 自动修复所有 AUTO-FIX 项
+
+直接应用每个修复。对每个修复输出一行摘要：
+`[AUTO-FIXED] [file:line] Problem → what you did`
+
+### Step 5c: 批量询问 ASK 项
+
+如果还有 ASK 项，就用 ONE 个 AskUserQuestion 提示：
+
+- 列出每个项目，包含编号、严重性标签、问题和推荐修复
+- 对每个项目给出选项：A) 按建议修复，B) 跳过
+- 给出一个整体 RECOMMENDATION
+
+示例格式：
+```text
+I auto-fixed 5 issues. 2 need your input:
+
+1. [CRITICAL] app/models/post.rb:42 — Race condition in status transition
+   Fix: Add `WHERE status = 'draft'` to the UPDATE
+   → A) Fix  B) Skip
+
+2. [INFORMATIONAL] app/services/generator.rb:88 — LLM output not type-checked before DB write
+   Fix: Add JSON schema validation
+   → A) Fix  B) Skip
+
+RECOMMENDATION: Fix both — #1 is a real race condition, #2 prevents silent data corruption.
+```
+
+如果 ASK 项不超过 3 个，可以逐个使用 AskUserQuestion，而不必批量处理。
+
+### Step 5d: 应用用户批准的修复
+
+对用户选择“Fix”的项目应用修复。输出已经修复了什么。
+
+如果没有 ASK 项目（全部都能 AUTO-FIX），就完全跳过提问。
+
+### 证据验证
+
+在输出最终审查结果之前：
+- 如果你说“这个模式是安全的”→ 引用证明安全的具体代码行
+- 如果你说“这里在别处已处理”→ 读取并引用对应处理代码
+- 如果你说“测试已经覆盖”→ 指明测试文件和方法
+- 永远不要说“可能已经处理”或“应该有测试”——要么验证，要么标记为未知
+
+**去合理化防护：** “这看起来没问题”不是一个发现。要么拿出证据证明它确实没问题，要么把它标成未验证。
+
+### Greptile 评论处理
+
+在输出自己的发现之后，如果 Step 2.5 里分类了 Greptile 评论：
+
+**在输出头部加入 Greptile 汇总：** `+ N Greptile comments (X valid, Y fixed, Z FP)`
+
+在回复任何评论之前，先运行 `greptile-triage.md` 中的 **升级检测** 算法，判断应使用 Tier 1（友好）还是 Tier 2（强硬）回复模板。
+
+1. **VALID & ACTIONABLE 评论：** 这些内容要并入你的发现列表——按 Fix-First 流程处理（机械性的直接 auto-fix，不机械的则放进 ASK）。(A: 现在修复，B: 接受，C: 误报)。如果用户选择 A（修复），使用 `greptile-triage.md` 中的 **Fix 回复模板**（包含内联 diff + 解释）。如果用户选择 C（误报），使用 **False Positive 回复模板**（包含证据 + 建议重新归类），并同时写入 per-project 和 global greptile-history。
+
+2. **FALSE POSITIVE 评论：** 通过 AskUserQuestion 展示每一条：
+   - 显示 Greptile 评论：file:line（或 `[top-level]`）+ 正文摘要 + permalink URL
+   - 简洁解释为什么它是误报
+   - 选项：
+     - A) 回复 Greptile，说明为什么这是错误的（如果明显是误报，推荐）
+     - B) 还是修一下（如果改动很小且无害）
+     - C) 忽略——不回复、不修复
+
+   如果用户选择 A，就使用 `greptile-triage.md` 中的 **False Positive 回复模板**（包含证据 + 建议重新分级），并同时写入 per-project 和 global greptile-history。
+
+3. **VALID BUT ALREADY FIXED 评论：** 直接使用 `greptile-triage.md` 中的 **Already Fixed 回复模板**，不需要 AskUserQuestion：
+   - 包含已经做了什么以及修复它的 commit SHA
+   - 同时写入 per-project 和 global greptile-history
+
+4. **SUPPRESSED 评论：** 静默跳过——这些是之前 triage 过的已知误报。
+
+---
+
+## Step 5.5: TODOS 交叉引用
+
+读取仓库根目录里的 `TODOS.md`（如果存在）。把 PR 和未完成的 TODO 做交叉比对：
+
+- **这个 PR 是否关闭了任何未完成的 TODO？** 如果是，在输出中注明："This PR addresses TODO: <title>"
+- **这个 PR 是否产生了应该写成 TODO 的工作？** 如果是，把它标成信息性发现。
+- **是否存在能为本次审查提供上下文的相关 TODO？** 如果有，在讨论相关发现时引用它们。
+
+如果不存在 `TODOS.md`，静默跳过此步骤。
+
+## Step 5.6: 文档过时检查
+
+把 diff 与文档文件交叉比对。对于仓库根目录下的每个 `.md` 文件（README.md、ARCHITECTURE.md、CONTRIBUTING.md、CLAUDE.md 等）：
+
+1. 检查 diff 中的代码变更是否影响该文档描述的功能、组件或工作流。
+2. 如果该文档在本分支中没有更新，但它所描述的代码却变了，就把它标成 INFORMATIONAL 发现：
+   "Documentation may be stale: [file] describes [feature/component] but code changed in this branch. Consider running `/document-release`."
+
+这只是信息性问题，绝不算 critical。修复动作是 `/document-release`。
+
+如果没有文档文件，静默跳过此步骤。
+
+---
+
+{{ADVERSARIAL_STEP}}
+
+## Step 5.8: 持久化 Eng Review 结果
+
+在所有审查步骤完成后，持久化最终的 `/review` 结果，这样 `/ship` 就能识别本分支已经跑过 Eng Review。
+
+运行：
+
+```bash
+~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"review","timestamp":"TIMESTAMP","status":"STATUS","issues_found":N,"critical":N,"informational":N,"quality_score":SCORE,"specialists":SPECIALISTS_JSON,"findings":FINDINGS_JSON,"commit":"COMMIT"}'
+```
+
+替换说明：
+- `TIMESTAMP` = ISO 8601 datetime
+- `STATUS` = 如果经过 Fix-First 处理和 adversarial review 后没有剩余未解决发现，则为 `"clean"`，否则为 `"issues_found"`
+- `issues_found` = 剩余未解决发现总数
+- `critical` = 剩余未解决 critical 发现数
+- `informational` = 剩余未解决 informational 发现数
+- `quality_score` = Step 4.6 计算出的 PR Quality Score（例如 7.5）。如果 specialist 被跳过（小 diff），就用 `10.0`
+- `specialists` = Step 4.6 里汇总出的每个 specialist 的统计对象。每个被考虑的 specialist 都要有一项：`{"dispatched":true/false,"findings":N,"critical":N,"informational":N}`（如果已派发），或者 `{"dispatched":false,"reason":"scope|gated"}`（如果被跳过）。要包含 Design specialist。示例：`{"testing":{"dispatched":true,"findings":2,"critical":0,"informational":2},"security":{"dispatched":false,"reason":"scope"}}`
+- `findings` = Step 5 里每个发现的记录数组。对每个发现（来自 critical pass 和 specialists），包含：`{"fingerprint":"path:line:category","severity":"CRITICAL|INFORMATIONAL","action":"ACTION"}`。ACTION 是 `"auto-fixed"`（Step 5b）、`"fixed"`（用户在 Step 5d 批准）或 `"skipped"`（用户在 Step 5c 选择跳过）。Step 5.0 里被忽略的发现不要包含进来（它们已经记录在之前的 review 条目里）。
+- `COMMIT` = `git rev-parse --short HEAD` 的输出
+
+{{LEARNINGS_LOG}}
+
+如果 review 在真正完成前就提前退出（例如与基分支没有 diff），不要写这条记录。
+
+## Important Rules
+
+- **先读完整个 diff 再评论。** 不要标记 diff 里已经处理过的问题。
+- **先修复，不只是阅读。** AUTO-FIX 项直接应用。ASK 项只在用户批准后处理。不要提交、推送或创建 PR——那是 /ship 的工作。
+- **简洁。** 一行问题，一行修复。不要前言。
+- **只标记真实问题。** 没问题的内容就跳过。
+- **使用 greptile-triage.md 里的 Greptile 回复模板。** 每个回复都要带证据。不要写空泛回复。
