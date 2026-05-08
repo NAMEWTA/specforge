@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Release to npm
     permissions:
+      id-token: write
       contents: read
       packages: write
     steps:
@@ -62,9 +63,7 @@ jobs:
         run: pnpm build
       
       - name: Publish to npm
-        run: pnpm publish --tag initial --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag initial --provenance
       
       - name: Create GitHub Release
         uses: actions/create-release@v1
