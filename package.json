@@ -2,6 +2,7 @@
   "name": "specforge",
   "version": "1.0.2",
   "description": "AI-native spec-driven development workflow tool",
+  "author": "namewta",
   "keywords": [
     "specforge",
     "specs",
