@@ -49,7 +49,7 @@ jobs:
       # 1. 若 GitHub Release 创建失败，已成功的 npm 发布结果保留（npm 发布不可回滚）
       # 2. GitHub Release 步骤失败会导致 job 非零退出并输出错误信息（满足 AC #4）
       - name: Publish to npm
-        run: npm publish --provenance
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
