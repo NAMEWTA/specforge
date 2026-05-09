@@ -21,7 +21,9 @@ See [reference-projects-analysis.md](references/reference-projects-analysis.md) 
 ## 🚀 Installation
 
 ```bash
-pnpm install
+npm install -g @namewta/specforge
+# 或
+pnpm add -g @namewta/specforge
 ```
 
 ## 📋 Commands
