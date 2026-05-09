@@ -10,8 +10,6 @@ author: "wta"
 
 # 移动端适配规范
 
-> 融合 skills-main frontend-design 的移动端设计原则 + 中文移动端开发最佳实践。
-
 ## Iron Law
 
 > **禁止未做移动端测试就声称支持移动端。** 在 iOS Safari 和 Android Chrome 双平台测试通过前，不得声称移动端适配完成。

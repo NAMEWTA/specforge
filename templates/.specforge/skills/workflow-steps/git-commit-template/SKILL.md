@@ -10,8 +10,6 @@ author: "wta"
 
 # Git 提交工作流辅助
 
-> 融合 gstack ship 的 WIP 提交处理 + superpowers-zh finishing-a-development-branch 的分支管理。
-
 ## Iron Law
 
 > **禁止提交破坏构建的代码。** 每次提交后项目必须处于可工作状态（编译通过、测试通过）。
@@ -42,8 +40,6 @@ author: "wta"
 - 修复 commit 是对上一个 commit 中错误的修正
 
 ## WIP 提交处理
-
-借鉴 gstack ship 的 WIP Commit Squash 模式：
 
 当开发过程中使用了 `WIP: <描述>` 格式的临时提交：
 1. 识别所有 WIP 提交

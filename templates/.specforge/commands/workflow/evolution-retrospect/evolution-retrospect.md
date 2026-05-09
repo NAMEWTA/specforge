@@ -42,7 +42,7 @@ specforge status --phase=all --metrics --quiet
 
 ## Step 0: 复盘范围评估
 
-**目标**: 借鉴 design-explore 的复杂度评估模式，确定复盘深度。
+**目标**: 确定复盘深度。
 
 ### 0.1 复杂度检查
 
@@ -172,7 +172,7 @@ find specforge/changes/<ChangeName>/ -name "*.md" | wc -l  # 产物数
 
 ## Step 4: 项目调优
 
-**目标**: 借鉴 gstack plan-tune 的自调优能力，优化项目配置。
+**目标**: 优化项目配置。
 
 完整调优手册参见 `references/tuning-playbook.md`。
 

@@ -4,7 +4,7 @@ type: workflow-command
 description: >-
   子代理驱动开发——宪法门禁、扩展钩子、清单检查、按依赖顺序执行任务、
   三层子代理审查（implementer→spec-reviewer→code-quality-reviewer）、
-  gstack 双阶段专项审查（CRITICAL→INFORMATIONAL）、TDD 红绿重构、Fix-First 修复循环。
+  双阶段专项审查（CRITICAL→INFORMATIONAL）、TDD 红绿重构、Fix-First 修复循环。
   触发场景："开始实现"、"执行任务"、"编码实现"、"build this"、"implement the plan"。
 version: "1.1.0"
 author: "wta"
@@ -41,7 +41,7 @@ specforge doctor --check-deps --quiet
 
 ### 1.1 扩展钩子检查（before_implement）
 
-**目标**: 在执行实现前，运行项目配置的扩展钩子（来自 spec-kit）
+**目标**: 在执行实现前，运行项目配置的扩展钩子
 
 - 检查 `.specforge/extensions.yml` 是否存在
 - 如果存在，加载 `hooks.before_implement` 配置
@@ -69,7 +69,7 @@ Wait for the result of the hook command before proceeding.
 
 ### 1.2 清单状态检查
 
-**目标**: 确保所有前置检查清单已完成（来自 spec-kit）
+**目标**: 确保所有前置检查清单已完成
 
 - 扫描 `checklists/` 目录中的所有清单文件
 - 统计每项清单的 Total/Completed/Incomplete
@@ -102,7 +102,7 @@ Wait for the result of the hook command before proceeding.
 
 ### 1.4 项目设置验证
 
-**目标**: 验证项目忽略文件配置正确（来自 spec-kit）
+**目标**: 验证项目忽略文件配置正确
 
 检测并创建/验证忽略文件：
 - Git 仓库 → `.gitignore`
@@ -132,7 +132,7 @@ Wait for the result of the hook command before proceeding.
 
 ## Step 2: 宪法门禁
 
-**目标**: 确保任务列表符合项目宪法原则（来自 spec-kit）
+**目标**: 确保任务列表符合项目宪法原则
 
 ### 2.1 逐原则审查
 
@@ -157,7 +157,7 @@ Wait for the result of the hook command before proceeding.
 
 ### 3.1 模型选择策略
 
-在派发子代理前，根据任务复杂度选择模型（来自 subagent-driven-development）：
+在派发子代理前，根据任务复杂度选择模型：
 
 | 任务特征 | 推荐模型 |
 |---------|---------|
@@ -214,7 +214,7 @@ Wait for the result of the hook command before proceeding.
   │     - Minor → 记录，标记完成
   │     - 修复后重新审查直到通过
   │
-  ├── ⑦ 派发专项审查子代理（按需并行，来自 gstack）
+  ├── ⑦ 派发专项审查子代理（按需并行）
   │     - testing specialist: 负路径测试、边界情况、测试隔离
   │     - security specialist: Trust Boundary、Auth/Authz、注入向量
   │     - performance specialist: N+1、Missing Indexes、Algorithm Complexity
@@ -299,7 +299,7 @@ Wait for the result of the hook command before proceeding.
 
 ### 3.4 子代理红线规则
 
-**绝不**（来自 subagent-driven-development）:
+**绝不**:
 - 未经用户明确同意在 main/master 分支上实现
 - 跳过审查（规格合规性或代码质量）
 - 带着未修复的问题继续下一个任务
@@ -352,7 +352,7 @@ Wait for the result of the hook command before proceeding.
 
 ## Step 5: 扩展钩子检查（after_implement）
 
-**目标**: 实现完成后执行后续扩展逻辑（来自 spec-kit）
+**目标**: 实现完成后执行后续扩展逻辑
 
 - 检查 `.specforge/extensions.yml` 的 `hooks.after_implement`
 - 过滤掉 `enabled: false` 的钩子

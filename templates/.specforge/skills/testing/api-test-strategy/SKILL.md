@@ -10,8 +10,6 @@ author: "wta"
 
 # API 测试策略
 
-> 融合 superpowers-zh TDD 的红绿重构 + spec-kit 的 Given/When/Then 格式 + gstack qa 的分层测试覆盖。
-
 ## Iron Law
 
 > **禁止在测试之前编写生产代码。** 必须先有失败的测试才能写实现。如果已经写了生产代码而没有测试，先删除生产代码。

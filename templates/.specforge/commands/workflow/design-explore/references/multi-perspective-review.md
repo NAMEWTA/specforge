@@ -1,7 +1,5 @@
 # 多视角并行审查（Multi-Perspective Review）
 
-> 借鉴 gstack 的 `plan-ceo-review` / `plan-eng-review` / `plan-design-review` / `plan-devex-review`
-> 与 superpowers-zh `dispatching-parallel-agents`。
 > 每个视角作为独立子代理，并行返回 JSON 结构，再由主代理聚合形成总评。
 
 ## 1. 子代理调度协议

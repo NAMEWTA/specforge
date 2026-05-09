@@ -137,7 +137,7 @@ Tests: 120 → 128 (+8 new)
 **目的**：展示代码审查结果，增强审查者信心
 
 **内容来源**：
-- 自动审查工具（如 gstack review）
+- 自动审查工具
 - 人工审查发现
 - 安全扫描结果
 
@@ -346,6 +346,5 @@ glab mr update -d "<new description>"
 
 ## 参考
 
-- gstack ship Step 19：PR/MR 创建完整流程
 - GitHub PR 最佳实践：https://docs.github.com/en/pull-requests
 - GitLab MR 最佳实践：https://docs.gitlab.com/ee/user/project/merge_requests/

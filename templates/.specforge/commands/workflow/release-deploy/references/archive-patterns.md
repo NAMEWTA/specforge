@@ -417,6 +417,5 @@ EOF
 
 ## 参考
 
-- OpenSpec archive-change skill：完整的归档实现
 - SpecForge 目录模型：`.specforge/` vs `specforge/`
 - 项目历史管理：归档 vs 删除 vs 保留

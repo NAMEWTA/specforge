@@ -100,7 +100,7 @@ await waitFor(
 expect(fs.existsSync('output.pdf')).toBe(true);
 ```
 
-参见 `references/condition-based-waiting-example.ts` (在 superpowers-zh 中) 获取完整实现和领域专用辅助函数。
+参见 `references/condition-based-waiting-example.ts` 获取完整实现和领域专用辅助函数。
 
 ## 常见错误
 

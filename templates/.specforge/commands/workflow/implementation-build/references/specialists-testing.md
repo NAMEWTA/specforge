@@ -1,7 +1,6 @@
 # Testing Specialist 审查清单
 
-> 来源：gstack/review/specialists/testing.md
-> 适用范围：所有实现任务完成后自动执行
+> 适用范围：所有实现任务完成后自动执行。
 
 ## 审查范围
 

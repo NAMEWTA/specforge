@@ -11,7 +11,7 @@ author: "wta"
 
 # 技能创建（TDD 方法）
 
-> 借鉴 skills-main `skill-creator` 与 superpowers-zh `writing-skills`：把"写一个 skill"当成 TDD 来做——先建立基线，再编写、再压测、再反规避、最后复测。
+> 把"写一个 skill"当成 TDD 来做——先建立基线，再编写、再压测、再反规避、最后复测。
 
 ## Iron Law
 

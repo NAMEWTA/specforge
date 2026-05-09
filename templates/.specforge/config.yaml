@@ -1,7 +1,7 @@
 schema: specforge-templates/v1
 
 # ----------------------------------------------------------------
-# Profile（OpenSpec 风格）
+# Profile
 # - 决定 init 时生成哪些 workflow command 目录、status 阶段顺序
 # - 三个内置 profile：
 #     minimal  : foundation, requirements, implementation, quality, release（5 阶段）
@@ -21,7 +21,6 @@ profile:
 # 目标：
 # - 统一管理 context / rules / errors / handoffs
 # - 供 workflow/tools commands 与 skills 通过“引用编号”保持一致
-# - 与 OpenSpec `openspec/config.yaml` 的风格对齐：顶层 context + rules
 #
 # 优先级（仅约定，具体合并逻辑由 CLI 实现）：
 # 1) 项目级：specforge/config.yaml（覆盖/追加）
@@ -68,7 +67,6 @@ rules:
       - "所有 command/skill 模板必须包含 YAML frontmatter：name/type/description/version/author。"
       - "description 必须包含触发场景（自然语言/英文关键词）以利发现。"
     progressiveDisclosure:
-      # 借鉴 skills-main skill-creator 的三级渐进披露契约
       level1_alwaysLoaded:
         - "始终加载：YAML frontmatter（name + type + description）。"
         - "description 必须包含触发场景与触发词；总长度建议 ≤ 200 字符（约 100 词）。"

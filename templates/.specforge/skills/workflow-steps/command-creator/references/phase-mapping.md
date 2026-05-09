@@ -4,11 +4,11 @@
 
 ## 映射摘要
 
-- foundation     ← constitution（spec-kit）、init/setup patterns
-- requirements   ← exploring/brainstorming/grill-me（多视角提问）
-- design         ← plan-*-review（gstack 多视角审查）
-- planning       ← writing-plans + tasks（小步骤、禁止占位符、复杂度分析）
-- implementation ← subagent-driven-dev + tdd（三层审查闭环）
+- foundation     ← 宪法治理、初始化模式
+- requirements   ← 多视角提问、方案探索
+- design         ← 多视角审查（CEO/工程/设计/DevEx）
+- planning       ← 小步骤拆解、禁止占位符、复杂度分析
+- implementation ← 子代理驱动 + TDD（三层审查闭环）
 - quality        ← qa + review + verify（三维验证/专家并行）
 - release        ← ship + archive + runbook（发布收尾、运维移交与归档）
 - evolution      ← plan-tune + skillify + writing-skills（复盘→固化→迭代）

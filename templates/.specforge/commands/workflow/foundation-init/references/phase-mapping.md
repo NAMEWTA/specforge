@@ -1,19 +1,19 @@
-# 8 阶段 ↔ 参考技能/机制映射
+# 8 阶段 ↔ 核心机制/技能映射
 
-> 从 reference-projects-analysis.md 抽取的精华，展示每个阶段借鉴的参考项目和核心机制。
+> 展示每个阶段对应的核心机制与技能映射。
 
 ## 阶段映射表
 
-| 阶段 | 命令 | 主要借鉴来源 | 核心机制 |
-|------|------|-------------|---------|
-| **Foundation** | foundation-init | OpenSpec 双目录模型 + spec-kit constitution + gstack preamble | 项目上下文采集、双目录结构、宪法制定、Profile 选择 |
-| **Requirements** | requirements-clarify | spec-kit specify/clarify + grill-me 12视角 + superpowers-zh brainstorming | 6维度分类法、12视角提问、方案探索对比矩阵、HARD-GATE 批准 |
-| **Design** | design-explore | gstack 多视角审查 + spec-kit 宪法合规 + OpenSpec design 产物 | CEO/工程/设计/DevEx 四视角审查（0-10分）、接口契约、宪法合规检查 |
-| **Planning** | planning-breakdown | superpowers-zh writing-plans + claude-task-master + spec-kit tasks + OpenSpec DAG | 文件结构先行、小步骤拆解（2-5分钟）、复杂度分析、DAG 依赖编排、禁止占位符 |
-| **Implementation** | implementation-build | superpowers-zh subagent-driven-development + TDD + spec-kit implement + gstack review | 三层子代理审查（implementer→spec-reviewer→code-quality-reviewer）、TDD 红绿重构、反馈修复循环 |
-| **Quality** | quality-verify | gstack qa/review + OpenSpec verify + spec-kit checklist/analyze + superpowers-zh verification | 分层测试（Quick/Standard/Exhaustive）、三维验证（Completeness/Correctness/Coherence）、7专家并行审查 |
-| **Release** | release-deploy | gstack ship + OpenSpec archive + superpowers-zh finishing-a-development-branch | 发布前验证、语义化版本、CHANGELOG、Git 标签、runbook/监控/告警/回滚移交、归档 |
-| **Evolution** | evolution-retrospect | gstack skillify/plan-tune + superpowers-zh writing-skills TDD 迭代 | 流程回顾、经验沉淀、TDD 迭代技能优化、项目调优、复盘报告 |
+| 阶段 | 命令 | 核心机制 | 关键技能 |
+|------|------|---------|---------|
+| **Foundation** | foundation-init | 双目录结构、宪法治理、Preamble 初始化 | 项目上下文采集、双目录结构、宪法制定、Profile 选择 |
+| **Requirements** | requirements-clarify | 多维分类、多视角提问、方案对比 | 6维度分类法、12视角提问、方案探索对比矩阵、HARD-GATE 批准 |
+| **Design** | design-explore | 多视角审查、宪法合规、接口契约 | CEO/工程/设计/DevEx 四视角审查（0-10分）、接口契约、宪法合规检查 |
+| **Planning** | planning-breakdown | 文件结构先行、小步骤拆解、DAG 编排 | 文件结构先行、小步骤拆解（2-5分钟）、复杂度分析、DAG 依赖编排、禁止占位符 |
+| **Implementation** | implementation-build | 子代理驱动、TDD 红绿重构、分层审查 | 三层子代理审查（implementer→spec-reviewer→code-quality-reviewer）、TDD 红绿重构、反馈修复循环 |
+| **Quality** | quality-verify | 分层测试、三维验证、并行审查 | 分层测试（Quick/Standard/Exhaustive）、三维验证（Completeness/Correctness/Coherence）、7专家并行审查 |
+| **Release** | release-deploy | 发布验证、语义化版本、运维移交 | 发布前验证、语义化版本、CHANGELOG、Git 标签、runbook/监控/告警/回滚移交、归档 |
+| **Evolution** | evolution-retrospect | 流程回顾、经验沉淀、TDD 迭代优化 | 流程回顾、经验沉淀、TDD 迭代技能优化、项目调优、复盘报告 |
 
 ## 核心机制详解
 

@@ -1,6 +1,6 @@
 # Artifact Graph Specification（产物依赖图规范）
 
-> 本规范基于 OpenSpec 的 artifact-graph 实现，定义了 SpecForge 变更工作流中的产物依赖关系、DAG 拓扑排序、阻塞检测和完成状态追踪机制。
+> 本规范定义了 SpecForge 变更工作流中的产物依赖关系、DAG 拓扑排序、阻塞检测和完成状态追踪机制。
 
 ---
 

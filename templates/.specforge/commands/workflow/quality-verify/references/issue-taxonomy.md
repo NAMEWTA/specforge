@@ -1,6 +1,6 @@
 # Issue 分类法（Issue Taxonomy）
 
-> 借鉴 gstack `qa/references/issue-taxonomy.md`。统一三层 QA 中"发现的问题"的严重度判定与处理建议，避免审查者各自判断、结果不可比。
+> 统一三层 QA 中"发现的问题"的严重度判定与处理建议，避免审查者各自判断、结果不可比。
 
 ## 1. 三层严重度
 

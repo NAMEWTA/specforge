@@ -1,7 +1,6 @@
 # Security Specialist 审查清单
 
-> 来源：gstack/review/specialists/security.md
-> 触发条件：当 `SCOPE_AUTH=true`，或者 (`SCOPE_BACKEND=true` 且 diff > 100 行)
+> 触发条件：当 `SCOPE_AUTH=true`，或者 (`SCOPE_BACKEND=true` 且 diff > 100 行)。
 
 ## 审查范围
 

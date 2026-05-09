@@ -1,12 +1,11 @@
 # Planning Patterns（计划模式库）
 
-> 本文件汇集了来自 superpowers-zh、spec-kit、claude-task-master 等项目的最佳计划模式，供 planning-breakdown 命令在执行任务拆解时参考。
+> 本文件汇集了任务拆解的最佳实践模式，供 planning-breakdown 命令在执行任务拆解时参考。
 
 ---
 
 ## 模式 1: 文件结构先行
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 任何需要拆任务的设计阶段
 
 ### 核心理念
@@ -67,7 +66,6 @@
 
 ## 模式 2: 小步骤任务拆解
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 所有实现类任务
 
 ### 核心理念
@@ -115,7 +113,6 @@
 
 ## 模式 3: TDD 三步节奏
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 需要高质量代码的实现任务
 
 ### 标准 TDD 节奏
@@ -159,7 +156,6 @@
 
 ## 模式 4: 规格覆盖自检
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 任务拆解完成后、进入实施前
 
 ### 执行步骤
@@ -190,7 +186,6 @@
 
 ## 模式 5: 类型一致性检查
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 任务拆解完成后
 
 ### 检查内容
@@ -216,7 +211,6 @@
 
 ## 模式 6: 执行交接
 
-**来源**: superpowers-zh writing-plans  
 **适用场景**: 计划完成后，移交执行阶段
 
 ### 两种执行方式

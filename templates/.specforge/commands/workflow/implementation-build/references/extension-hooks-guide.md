@@ -1,7 +1,6 @@
 # 扩展钩子指南
 
-> 来源：spec-kit-main/templates/commands/implement.md
-> 用途：在实现前后执行自定义扩展逻辑
+> 在实现前后执行自定义扩展逻辑。
 
 ---
 

@@ -1,6 +1,6 @@
 # Phase Structure（Phase 结构详解）
 
-> 本文件基于 spec-kit 的 Phase 组织方式，详细说明了 Setup → Foundational → User Stories → Polish 的标准结构、每个阶段的目标、示例任务和完成标准。
+> 本文件详细说明了 Setup → Foundational → User Stories → Polish 的标准结构、每个阶段的目标、示例任务和完成标准。
 
 ---
 

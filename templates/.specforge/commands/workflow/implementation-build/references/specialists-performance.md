@@ -1,7 +1,6 @@
 # Performance Specialist 审查清单
 
-> 来源：gstack/review/specialists/performance.md
-> 触发条件：当 `SCOPE_BACKEND=true` 或 `SCOPE_FRONTEND=true`
+> 触发条件：当 `SCOPE_BACKEND=true` 或 `SCOPE_FRONTEND=true`。
 
 ## 审查范围
 

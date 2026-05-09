@@ -21,8 +21,6 @@ specforge doctor --check-deps --quiet
 
 # 测试、审查、验证闭环
 
-> 本阶段借鉴 gstack qa + review 的分层测试和并行专家审查、OpenSpec verify 三维验证、spec-kit checklist + analyze 质量门禁、superpowers-zh verification-before-completion Iron Law。
-
 ## Iron Law — 完成前验证
 
 > **无新验证证据，禁止声称完成。** 不计为验证证据的：linter 通过、agent 说成功、上次验证过、改动太小。验证证据必须是：你亲自运行的测试命令输出 PASS。
@@ -198,7 +196,7 @@ git log <base>..HEAD --oneline
 
 ## Step 2: 生成质量检查清单
 
-**目标**：生成定制化检查清单。借鉴 spec-kit checklist 的核心理念——**"检查清单 = 需求质量的单元测试"**，验证的是需求质量而非实现行为。
+**目标**：生成定制化检查清单。核心理念——**"检查清单 = 需求质量的单元测试"**，验证的是需求质量而非实现行为。
 
 **关键概念**：
 - ❌ **错误**（测试实现）："验证按钮点击正确"、"测试错误处理工作"
@@ -216,7 +214,7 @@ git log <base>..HEAD --oneline
 | **Standard** | + 中等优先级 + 回归测试 | 常规功能（推荐） |
 | **Exhaustive** | + 外观 + 边界 + 压力测试 | 核心功能、安全关键 |
 
-**动态澄清问题**（借鉴 spec-kit）：
+**动态澄清问题**：
 
 生成最多 3 个上下文相关的澄清问题，问题类型：
 - **范围细化**："是否应包括与 X 和 Y 的集成触点，还是仅限于本地模块正确性？"
@@ -228,7 +226,7 @@ git log <base>..HEAD --oneline
 
 ### 2.2 检查清单分类
 
-借鉴 spec-kit，按需求质量维度分组：
+按需求质量维度分组：
 
 - **Requirement Completeness**（需求完整性）：所有必要需求是否文档化？
 - **Requirement Clarity**（需求清晰度）：需求是否明确无歧义？
@@ -286,7 +284,7 @@ git log <base>..HEAD --oneline
 
 ## Step 3: 分层测试验证（Quick / Standard / Exhaustive）
 
-**目标**：按选定深度执行分层测试。借鉴 gstack `qa` 三层模型。
+**目标**：按选定深度执行分层测试。
 **默认层级**：`standard`。可在 preamble 中通过参数指定：
 
 ```bash
@@ -339,7 +337,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 
 ### 3.4 健康度评分（Health Score Rubric）
 
-借鉴 gstack qa 健康度评分模型，计算多维度加权分数：
+计算多维度加权分数：
 
 | 分类 | 权重 | 评分标准 |
 |------|------|----------|
@@ -368,7 +366,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 
 ## Step 4: 三维验证
 
-**目标**：借鉴 OpenSpec verify 的 Completeness/Correctness/Coherence 三维度，并扩展 spec-kit analyze 的跨产物一致性分析。
+**目标**：从完整性/正确性/一致性三个维度验证，并进行跨产物一致性分析。
 
 ### 4.1 Completeness（完整性）
 
@@ -396,7 +394,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 - [ ] 命名约定一致（变量、函数、文件）
 - [ ] 文档与代码同步（注释、README、API 文档）
 
-### 4.4 跨产物一致性分析（借鉴 spec-kit analyze）
+### 4.4 跨产物一致性分析
 
 **目标**：检测 PROPOSAL.md、DESIGN.md、TASKS.md 之间的不一致性。
 
@@ -425,11 +423,9 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 
 ## Step 5: 并行专家审查
 
-**目标**：借鉴 gstack review 的 7 专家并行审查模式。每个专家子代理并发执行，独立报告。
+**目标**：7 专家并行审查。每个专家子代理并发执行，独立报告。
 
 ### 5.1 自适应门控（Adaptive Gating）
-
-借鉴 gstack review 的自适应门控机制：
 
 1. **检测 diff 行数**：
    - 如果 <50 行：跳过所有专家，输出 "Small diff — specialists skipped"
@@ -459,7 +455,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 | **maintainability** | 可维护性审查 | 代码重复（DRY）、命名清晰度、模块耦合度、注释质量（解释为什么）、函数复杂度（圈复杂度 <10） |
 | **red-team** | 红队审查 | 对抗性测试（恶意输入）、异常输入处理、故障注入（网络超时、DB 断开）、竞态条件、资源耗尽 |
 
-### 5.3 置信度评分（借鉴 gstack review）
+### 5.3 置信度评分
 
 每个发现**必须**包含 1-10 置信度：
 
@@ -514,7 +510,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 
 ## Step 6: 修复循环
 
-**目标**：处理所有 Critical 和 Important 反馈。借鉴 gstack qa Phase 8 修复流程。
+**目标**：处理所有 Critical 和 Important 反馈。
 
 ### 6.1 详细修复流程
 
@@ -545,7 +541,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
 - **best-effort**：已修复但无法完全验证
 - **reverted**：检测到回归 → `git revert HEAD` → 标记为 deferred
 
-**8e.5. 回归测试生成**（借鉴 gstack qa Phase 8e.5）：
+**8e.5. 回归测试生成**：
 
 **跳过条件**：分类不是 verified、纯 CSS 修复、无测试框架
 
@@ -574,7 +570,7 @@ QA_LEVEL=exhaustive # + 边界 / 性能 / 安全（< 30 min）
    - 视觉 bug + JS 行为（断裂下拉框、动画）→ 组件测试
    - 纯 CSS → 跳过（由 QA 重新运行捕获）
 
-### 6.2 WTF-Likelihood 自检（借鉴 gstack qa Phase 8f）
+### 6.2 WTF-Likelihood 自检
 
 每 5 次修复（或任何 revert 后），计算风险指数：
 
@@ -698,7 +694,7 @@ WTF-LIKELIHOOD:
 - 如果 PASS_WITH_CONCERNS：记录 Important 到 TODO，可进入 release
 ```
 
-### 7.2 完成状态协议（借鉴 gstack）
+### 7.2 完成状态协议
 
 报告结尾使用以下状态之一：
 

@@ -1,6 +1,6 @@
 # 决策简报格式（Decision Brief Format）
 
-> 本参考文档详细说明 design-explore 命令中使用的决策简报格式，借鉴自 gstack 的 AskUserQuestion 规范。
+> 本参考文档详细说明 design-explore 命令中使用的决策简报格式。
 
 ## 何时使用决策简报
 

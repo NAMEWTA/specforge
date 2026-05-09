@@ -1,4 +1,4 @@
-# SpecForge 扩展钩子（spec-kit 风格 + 借鉴 OpenSpec）
+# SpecForge 扩展钩子
 #
 # 触发方式：在命令 preamble 中调用
 #   specforge run-hook --phase requirements --stage before

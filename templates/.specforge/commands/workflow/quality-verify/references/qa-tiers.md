@@ -1,6 +1,6 @@
 # QA 三层测试详解（Quick / Standard / Exhaustive）
 
-> 借鉴 gstack `qa` 与 `qa-only` 的三层模型。本文是 quality-verify Step 3 的展开参考，按需阅读。
+> 本文是 quality-verify Step 3 的展开参考，按需阅读。
 
 ## 1. 选择启发（Tier Selection Heuristics）
 

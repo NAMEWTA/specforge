@@ -2,9 +2,8 @@
 name: requirements-clarify
 type: workflow-command
 description: >-
-  需求澄清与方案探索——融合 grill-me 高强度访谈（意图挖掘/约束暴露/隐藏假设）+
-  spec-kit 6维度结构化澄清 + brainstorming 方案探索（2-3方案+对比矩阵+视觉伴侣）+
-  规格自检与审查。触发场景："澄清需求"、"需求分析"、"方案探索"、"头脑风暴设计"、
+  需求澄清与方案探索——高强度访谈（意图挖掘/约束暴露/隐藏假设）、6维度结构化澄清、方案探索（2-3方案+对比矩阵+视觉伴侣）、规格自检与审查。
+  触发场景："澄清需求"、"需求分析"、"方案探索"、"头脑风暴设计"、
   "spec this feature"、"grill me on this"、"pressure-test this"。
 version: "2.0.0"
 author: "wta"
@@ -41,7 +40,7 @@ specforge doctor --check-deps --quiet
 
 ---
 
-## 核心交互原则（来自 grill-me）
+## 核心交互原则
 
 1. **一次只问一个问题** — 每条消息只提一个问题，不要同时抛出多个
 2. **每个问题附带推荐答案** — 让用户有东西可以回应，而不是面对空白输入
@@ -86,7 +85,7 @@ specforge doctor --check-deps --quiet
 - 当前需求属于哪个抽象层级？（基础设施/领域模型/应用服务/用户界面）
 - 与已有代码的关系？（新增模块/修改既有/替换旧实现）
 
-### 1.3 意图挖掘（grill-me 核心）
+### 1.3 意图挖掘
 
 **一次只问一个问题，每个问题附带推荐答案**：
 
@@ -105,7 +104,7 @@ specforge doctor --check-deps --quiet
 
 ## Phase 2: 结构化需求澄清 — 6 维度分类法
 
-**目标**：借鉴 spec-kit clarify 的结构化分类法，系统扫描需求中欠明确的区域。每个维度逐一审查，标记 `[NEEDS CLARIFICATION]`（最多 5 个）。
+**目标**：系统扫描需求中欠明确的区域。每个维度逐一审查，标记 `[NEEDS CLARIFICATION]`（最多 5 个）。
 
 ### 2.1 功能范围（Functional Scope）
 - 核心功能边界在哪里？什么明确不在范围内？
@@ -141,7 +140,7 @@ specforge doctor --check-deps --quiet
 
 ## Phase 3: 方案探索与对比
 
-**目标**：融合 grill-me 多视角提问 + brainstorming 方案探索方法。提出 2-3 种可行方案，展示对比矩阵，给出推荐理由。
+**目标**：通过多视角提问进行方案探索。提出 2-3 种可行方案，展示对比矩阵，给出推荐理由。
 
 ### 3.1 多视角提问（静默使用视角名称）
 
@@ -156,7 +155,7 @@ specforge doctor --check-deps --quiet
 - 可逆性：这是一个单向门还是双向门？做错后能多容易地回退？
 - 可持续性：6 个月后维护这个方案的成本如何？
 
-完整 12 视角参考：`references/grill-me-patterns.md`
+完整 12 视角参考：`references/multi-perspective-patterns.md`
 
 ### 3.2 理解用户意图与期望结果
 

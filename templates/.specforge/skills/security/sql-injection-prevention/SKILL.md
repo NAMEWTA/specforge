@@ -10,7 +10,7 @@ author: "wta"
 
 # SQL 注入防护与安全规范
 
-> 融合 gstack review security 专家审查维度 + OWASP Top 10 核心防护。
+> 基于 OWASP Top 10 核心防护规范。
 
 ## Iron Law
 

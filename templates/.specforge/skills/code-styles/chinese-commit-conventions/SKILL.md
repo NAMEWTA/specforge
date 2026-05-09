@@ -10,7 +10,7 @@ author: "wta"
 
 # 中文 Conventional Commits 规范
 
-> 借鉴 superpowers-zh chinese-commit-conventions。type 使用英文标准关键字，scope 和描述使用中文。
+> type 使用英文标准关键字，scope 和描述使用中文。
 
 ## Iron Law
 

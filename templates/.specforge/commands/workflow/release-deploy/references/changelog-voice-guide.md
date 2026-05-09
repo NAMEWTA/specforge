@@ -305,5 +305,4 @@ COMMIT_COUNT=$(git log <base>..HEAD --oneline | wc -l | tr -d ' ')
 ## 参考
 
 - Keep a Changelog：https://keepachangelog.com/
-- gstack ship Step 13：CHANGELOG 自动生成流程
 - SemVer 规范：https://semver.org/

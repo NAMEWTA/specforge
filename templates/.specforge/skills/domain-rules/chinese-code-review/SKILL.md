@@ -10,7 +10,7 @@ author: "wta"
 
 # 中文团队代码审查规范
 
-> 借鉴 superpowers-zh chinese-code-review。适用于中文技术团队的代码审查场景。
+> 适用于中文技术团队的代码审查场景。
 
 ## Iron Law
 

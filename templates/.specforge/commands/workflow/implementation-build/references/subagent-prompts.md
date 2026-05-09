@@ -1,7 +1,6 @@
 # 子代理提示词模板
 
-> 来源：superpowers-zh/skills/subagent-driven-development/
-> 用途：在实现工作流中派发子代理时使用
+> 在实现工作流中派发子代理时使用。
 
 ---
 

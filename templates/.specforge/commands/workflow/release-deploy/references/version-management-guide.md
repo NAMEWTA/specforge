@@ -199,7 +199,7 @@ echo "版本验证通过：$NEW_VERSION"
 **修复**：
 1. 检查基分支的最新版本号
 2. 检查是否有其他分支已声明更高版本
-3. 使用队列感知版本选择（如 gstack 的 gstack-next-version）
+3. 使用队列感知版本选择
 
 ## 最佳实践
 
@@ -211,6 +211,5 @@ echo "版本验证通过：$NEW_VERSION"
 
 ## 参考
 
-- gstack ship Step 12：完整的版本管理实现
 - SemVer 规范：https://semver.org/
 - Node.js package.json 版本字段：https://docs.npmjs.com/cli/v9/configuring-npm/package-json#version

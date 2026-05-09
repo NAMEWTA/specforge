@@ -85,7 +85,7 @@ artifacts:
 
 ## Step 2: 文件结构先行
 
-**目标**：借鉴 superpowers-zh writing-plans 的方法——拆任务前先锁定文件清单和职责。先确定"哪些文件需要动"，再确定"每个文件做什么"。
+**目标**：拆任务前先锁定文件清单和职责。先确定"哪些文件需要动"，再确定"每个文件做什么"。
 
 参考：`references/planning-patterns.md` → 模式 1
 
@@ -111,7 +111,7 @@ artifacts:
 
 ## Step 3: 小步骤任务拆解
 
-**目标**：借鉴 superpowers-zh writing-plans 的小步骤粒度 + spec-kit 的 Phase 结构。
+**目标**：按小步骤粒度拆解任务，以 Phase 结构组织。
 
 参考：
 - `references/planning-patterns.md` → 模式 2（小步骤拆解）
@@ -120,7 +120,7 @@ artifacts:
 
 ### 3.1 Phase 结构
 
-按 spec-kit 约定组织任务：
+按 Phase 约定组织任务：
 
 ```
 Phase 1: Setup（环境准备）
@@ -167,7 +167,7 @@ Phase N: Polish（收尾）
 
 ## Step 4: 复杂度分析（含自动评分）
 
-**目标**：借鉴 claude-task-master 的复杂度分析。评估每个任务，标记高复杂度任务推荐拆解。
+**目标**：评估每个任务复杂度，标记高复杂度任务推荐拆解。
 
 **强制使用显式评分公式**（参见 `references/complexity-guide.md` 第六节）：
 
@@ -202,7 +202,7 @@ score = D + 2 * (M - 1) + 3 * U
 
 ### 4.2 任务扩展机制
 
-当任务复杂度为 L 或 XL 时，使用任务扩展（参考 claude-task-master 的 expand-task）：
+当任务复杂度为 L 或 XL 时，使用任务扩展：
 
 ```json
 {
@@ -230,7 +230,7 @@ score = D + 2 * (M - 1) + 3 * U
 
 ## Step 5: 依赖编排
 
-**目标**：借鉴 spec-kit tasks 和 OpenSpec artifact-graph 的 DAG 依赖管理。
+**目标**：通过 DAG 依赖管理编排任务执行顺序。
 
 参考：`references/artifact-graph-spec.md`
 
@@ -270,7 +270,7 @@ proposal → specs → tasks
 
 ## Step 6: 禁止占位符扫描
 
-**目标**：借鉴 superpowers-zh writing-plans。逐一检查任务描述中的 6 种"计划缺陷"。
+**目标**：逐一检查任务描述中的 6 种"计划缺陷"。
 
 参考：`references/planning-patterns.md` → 模式 2
 
@@ -293,7 +293,7 @@ proposal → specs → tasks
 
 ## Step 7: 规格覆盖自检
 
-**目标**：借鉴 superpowers-zh writing-plans self-check。对照 DESIGN.md 和 PROPOSAL.md 逐需求核对。
+**目标**：对照 DESIGN.md 和 PROPOSAL.md 逐需求核对。
 
 参考：`references/planning-patterns.md` → 模式 4、5
 
@@ -323,7 +323,7 @@ proposal → specs → tasks
 
 ### 8.1 TASKS.md 模板
 
-严格遵循 spec-kit 清单格式：`- [ ] [TaskID] [P?] [Story?] Description with file path`
+严格遵循清单格式：`- [ ] [TaskID] [P?] [Story?] Description with file path`
 
 ```markdown
 # TASKS: <ChangeName>

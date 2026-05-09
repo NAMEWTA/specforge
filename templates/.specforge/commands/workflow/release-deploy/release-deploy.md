@@ -47,11 +47,6 @@ echo "DIRTY: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 
 # 发布、部署与归档
 
-> 本命令借鉴三大最佳实践：
-> - **gstack ship**：20步完整发布流（版本管理/CHANGELOG/PR创建/验证门控）
-> - **OpenSpec archive**：系统化归档机制（产物检查/任务检查/归档执行）
-> - **superpowers-zh**：分支收尾验证模式（完成前验证/结构化选项）
-
 ## Iron Law
 
 > **绝对阻断规则 —— 以下情况禁止发布，无例外：**
@@ -88,7 +83,7 @@ echo "DIRTY: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 - [ ] 基分支已合并（如适用）
 - [ ] CI/CD 流水线通过（如适用）
 
-### 1.3 验证门控函数（来自 verification-before-completion）
+### 1.3 验证门控函数
 
 **在宣称发布完成之前，必须执行以下门控：**
 
@@ -166,7 +161,7 @@ echo "BASE: $BASE_VERSION  VERSION: $CURRENT_VERSION  LANG: ${LANG_VERSION:-<non
 
 ### 2.2 自动判断版本级别
 
-基于 diff 内容自动判断（参考 gstack ship Step 12）：
+基于 diff 内容自动判断：
 
 ```bash
 # 统计变更行数
@@ -211,7 +206,7 @@ echo "$NEW_VERSION" > VERSION
 
 ## Step 3: CHANGELOG 生成
 
-### 3.1 完整流程（借鉴 gstack ship Step 13）
+### 3.1 完整流程
 
 1. **读取 CHANGELOG.md 头部**了解现有格式
 2. **枚举所有 commit**：
@@ -266,7 +261,7 @@ echo "$NEW_VERSION" > VERSION
 
 ## Step 4: 执行发布
 
-### 4.1 可 Bisect 的提交拆分（借鉴 gstack ship Step 15）
+### 4.1 可 Bisect 的提交拆分
 
 **目标**：创建小的、逻辑的提交，每个提交独立有效，支持 `git bisect`
 
@@ -392,7 +387,7 @@ glab mr create -b <base> -t "v$VERSION <type>: <summary>" -d "<body>"
 
 ## Step 6: 分支收尾
 
-**目标**：借鉴 superpowers-zh finishing-a-development-branch 的 4 选项模式
+**目标**：提供 4 种分支收尾选项
 
 ### 6.1 展示选项
 
@@ -494,7 +489,7 @@ git worktree remove <worktree-path>
 
 ## Step 8: 归档
 
-**目标**：借鉴 OpenSpec archive-change 机制
+**目标**：系统化归档已完成的变更
 
 ### 8.1 检查产物完成状态
 
