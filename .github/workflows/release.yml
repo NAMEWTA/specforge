@@ -11,37 +11,17 @@ jobs:
     name: Release to npm
     permissions:
       id-token: write
-      contents: read
+      contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
-          node-version: '24.14.1'
           registry-url: 'https://registry.npmjs.org'
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-      
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
+
       - name: Verify tag matches package version
         run: |
           TAG="${{ github.ref }}"
@@ -52,31 +32,36 @@ jobs:
             exit 1
           fi
           echo "Version verified: v$PACKAGE_VERSION"
-      
+
       - name: Run lint
         run: pnpm lint
-      
+
       - name: Run tests
         run: pnpm test
-      
+
       - name: Build
         run: pnpm build
-      
+
+      - name: Verify bin entry
+        run: node scripts/verify-bin.mjs
+
+      # npm publish 必须在 GitHub Release 创建之前执行，以确保：
+      # 1. 若 GitHub Release 创建失败，已成功的 npm 发布结果保留（npm 发布不可回滚）
+      # 2. GitHub Release 步骤失败会导致 job 非零退出并输出错误信息（满足 AC #4）
       - name: Publish to npm
         run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
+
+      # 独立步骤：即使此步骤失败，上一步的 npm publish 已完成且不会被回滚
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
+        if: success()
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Released version from tag ${{ github.ref }}
-            
-            For details, see the [Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

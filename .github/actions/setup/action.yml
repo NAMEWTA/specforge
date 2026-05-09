@@ -1,0 +1,35 @@
+name: 'Setup Environment'
+description: 'Setup Node.js, pnpm, cache, and install dependencies'
+
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '24.14.1'
+  pnpm-version:
+    description: 'pnpm version'
+    required: false
+    default: '9'
+  registry-url:
+    description: 'npm registry URL (leave empty to skip)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: ${{ inputs.registry-url }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile

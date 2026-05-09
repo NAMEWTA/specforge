@@ -1,0 +1,19 @@
+# PR 自动标签规则
+# 由 .github/workflows/label-pr.yml 中的 actions/labeler@v5 使用
+# Schema: https://github.com/actions/labeler
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+templates:
+  - changed-files:
+      - any-glob-to-any-file: 'templates/**'
+
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'src/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'

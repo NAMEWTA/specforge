@@ -108,11 +108,11 @@ describe('ScaffoldService', () => {
     await service.execute(tmpDir, { projectName: 'TestProj' });
 
     // project.md 应该只在 templates/specforge/ 中存在时才被复制
+    // 使用 process.cwd()（测试由 workspace root 启动，ESM 下无 __dirname）
     const projectMdPath = path.join(tmpDir, 'specforge', 'project.md');
-    const projectMdExistsInTemplate = fsExtra.existsSync(
-      path.join(__dirname, '../../../../templates/specforge/project.md'),
-    );
-    
+    const templateProjectMdPath = path.join(process.cwd(), 'templates/specforge/project.md');
+    const projectMdExistsInTemplate = fsExtra.existsSync(templateProjectMdPath);
+
     const projectMdExistsInResult = fsExtra.existsSync(projectMdPath);
     expect(projectMdExistsInResult).toBe(projectMdExistsInTemplate);
   });

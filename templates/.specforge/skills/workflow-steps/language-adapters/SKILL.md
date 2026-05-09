@@ -124,4 +124,6 @@ author: "wta"
 ## References 导航
 
 - `references/spring-boot-conventions.md` — Spring Boot 多模块、application.yml profile、Actuator 端点等约定
-- `references/python-conventions.md` — venv/poetry/pyproject、pytest fixture/conftest 约定、async 注意点
+- `references/node.md` — Node.js 包管理、ESM/CJS、TypeScript、Vitest、CLI 发布等约定
+- `references/python.md` — venv/poetry/pyproject、pytest fixture/conftest 约定、async 注意点
+- `references/go.md` — Go Modules、项目结构、错误处理、context、pytest 表驱动、golangci-lint 等约定

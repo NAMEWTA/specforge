@@ -13,7 +13,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "specforge": "./bin/specforge.ts"
+    "specforge": "./dist/cli/index.js"
   },
   "exports": {
     ".": {
@@ -23,7 +23,6 @@
   },
   "files": [
     "dist",
-    "bin",
     "templates",
     "!dist/**/*.test.js",
     "!dist/**/__tests__",
@@ -31,7 +30,8 @@
   ],
   "scripts": {
     "dev": "tsx src/cli/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/inject-shebang.mjs",
+    "build:check-bin": "node scripts/verify-bin.mjs",
     "test": "vitest run",
     "lint": "eslint .",
     "format": "prettier --write .",
