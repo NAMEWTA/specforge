@@ -11,6 +11,14 @@
     "development"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NAMEWTA/specforge"
+  },
+  "homepage": "https://github.com/NAMEWTA/specforge#readme",
+  "bugs": {
+    "url": "https://github.com/NAMEWTA/specforge/issues"
+  },
   "type": "module",
   "bin": {
     "specforge": "./dist/cli/index.js"
