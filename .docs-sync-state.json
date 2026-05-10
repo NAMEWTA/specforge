@@ -1,6 +1,13 @@
 {
   "schema_version": 1,
   "skill": "docs-sync",
+  "state_path": ".docs-sync-state.json",
+  "tracked_docs": [
+    "README.md",
+    "README-ZH.md",
+    "AGENTS.md",
+    "CHANGELOGS.md"
+  ],
   "last_sync_sha": "2d16d7a4d7f5da165c565b9aa3265824be133214",
   "last_sync_short": "2d16d7a",
   "last_sync_commit_subject": "feat(templates): enrich command-creator & add github-ops skill (v0.0.3)",

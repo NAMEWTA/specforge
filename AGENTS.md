@@ -226,3 +226,9 @@ spec-kit 风格的 before/after 钩子。键名 `before_<phase>` / `after_<phase
 - 模板机器源：`templates/.specforge/config.yaml`（全文注释型）
 - 仓库运营与发布：`.agents/skills/github-ops/SKILL.md`
 - 文档同步工作流：`.agents/skills/docs-sync/SKILL.md`
+
+## 注意
+- 读取文件内容较多时，应分批读取，避免一次性加载过大内容导致上下文溢出。
+- 写入文件内容较多时，应分块写入，避免单次大批量写入导致操作中断。
+- 优先使用 SubAgent 进行文件的分块读取与写入操作。
+- 若写入过程中出现中断（aborted），应自动切换为分段写入策略重试。

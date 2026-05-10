@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """
-Skill Initializer - Creates a new skill from template
+技能初始化脚本（SpecForge-aware）
 
-Usage:
-    init_skill.py <skill-name> --path <path> [--resources scripts,references,assets] [--examples]
+用途：
+    为新技能生成符合 SpecForge 规范的骨架目录与 SKILL.md 模板。
 
-Examples:
-    init_skill.py my-new-skill --path skills/public
-    init_skill.py my-new-skill --path skills/public --resources scripts,references
-    init_skill.py my-api-helper --path skills/private --resources scripts --examples
-    init_skill.py custom-skill --path /custom/location
+用法：
+    init_skill.py <skill-name> [--type <skill-type>] [--path <output-dir>] \
+        [--resources scripts,references,assets] [--examples]
+
+示例：
+    # 按 type 自动路由到 .specforge/skills/<类别目录>/<skill-name>/
+    init_skill.py my-new-skill --type workflow-step
+    init_skill.py brand-style --type ui-ux-rule --resources assets --examples
+
+    # 显式指定输出根目录（跳过 type 路由）
+    init_skill.py my-new-skill --path /custom/location
+    init_skill.py api-helper --path skills/private --resources scripts --examples
 """
 
 import argparse
@@ -20,179 +27,196 @@ from pathlib import Path
 MAX_SKILL_NAME_LENGTH = 64
 ALLOWED_RESOURCES = {"scripts", "references", "assets"}
 
+# SpecForge 技能类型 → 类别目录 映射
+# 必须与仓库 src/core/constants.ts 的 SKILL_CATEGORY_DIRS 保持一致
+SKILL_TYPE_TO_CATEGORY_DIR = {
+    "domain-rule": "domain-rules",
+    "code-style": "code-styles",
+    "architecture-rule": "architecture",
+    "testing-rule": "testing",
+    "security-rule": "security",
+    "ui-ux-rule": "ui-ux",
+    "workflow-step": "workflow-steps",
+}
+
+SPECFORGE_SKILLS_ROOT = ".specforge/skills"
+DEFAULT_SKILL_TYPE = "workflow-step"
+DEFAULT_AUTHOR = "wta"
+
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+type: {skill_type}
+description: "[TODO：用一两句话描述技能做什么 + 何时触发；包含明确的触发词或场景。长度 ≤ 200 字。]"
+version: "1.0.0"
+author: "{author}"
 ---
 
 # {skill_title}
 
-## Overview
+## 概述
 
-[TODO: 1-2 sentences explaining what this skill enables]
+[TODO：1-2 句话说明本技能能解决什么问题]
 
-## Structuring This Skill
+## 本技能的结构
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+[TODO：按技能用途选择合适的结构，常见模式：
 
-**1. Workflow-Based** (best for sequential processes)
-- Works well when there are clear step-by-step procedures
-- Example: DOCX skill with "Workflow Decision Tree" -> "Reading" -> "Creating" -> "Editing"
-- Structure: ## Overview -> ## Workflow Decision Tree -> ## Step 1 -> ## Step 2...
+**1. 工作流式**（适合顺序性流程）
+- 有清晰的步骤化过程时使用
+- 示例：DOCX 技能按 "工作流决策树" → "读取" → "创建" → "编辑" 组织
+- 结构：## 概述 → ## 工作流决策树 → ## 第 1 步 → ## 第 2 步 …
 
-**2. Task-Based** (best for tool collections)
-- Works well when the skill offers different operations/capabilities
-- Example: PDF skill with "Quick Start" -> "Merge PDFs" -> "Split PDFs" -> "Extract Text"
-- Structure: ## Overview -> ## Quick Start -> ## Task Category 1 -> ## Task Category 2...
+**2. 任务式**（适合工具集合）
+- 技能提供多种独立操作/能力时使用
+- 示例：PDF 技能按 "快速开始" → "合并" → "拆分" → "抽取文本" 组织
+- 结构：## 概述 → ## 快速开始 → ## 任务 1 → ## 任务 2 …
 
-**3. Reference/Guidelines** (best for standards or specifications)
-- Works well for brand guidelines, coding standards, or requirements
-- Example: Brand styling with "Brand Guidelines" -> "Colors" -> "Typography" -> "Features"
-- Structure: ## Overview -> ## Guidelines -> ## Specifications -> ## Usage...
+**3. 参考/规范式**（适合标准或规格）
+- 适合品牌规范、编码标准、合规要求
+- 示例：品牌规范按 "指引" → "配色" → "字体" → "组件" 组织
+- 结构：## 概述 → ## 指引 → ## 规格 → ## 使用 …
 
-**4. Capabilities-Based** (best for integrated systems)
-- Works well when the skill provides multiple interrelated features
-- Example: Product Management with "Core Capabilities" -> numbered capability list
-- Structure: ## Overview -> ## Core Capabilities -> ### 1. Feature -> ### 2. Feature...
+**4. 能力式**（适合集成系统）
+- 技能提供多个互相关联的能力时使用
+- 示例：产品管理按 "核心能力" → 编号能力列表组织
+- 结构：## 概述 → ## 核心能力 → ### 1. 能力 → ### 2. 能力 …
 
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
+多种模式可组合。大多数技能会混用（例：以任务式为主，对复杂操作补充工作流式）。
 
-Delete this entire "Structuring This Skill" section when done - it's just guidance.]
+完成后删除整个"本技能的结构"章节——它只是写作指引，不应出现在最终技能里。]
 
-## [TODO: Replace with the first main section based on chosen structure]
+## [TODO：按上面选定的结构替换为正式章节标题]
 
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
+[TODO：在此处添加内容。可参考其他技能中的常见手法：
+- 技术类技能的代码示例
+- 复杂流程的决策树
+- 以真实用户请求为输入的具体示例
+- 对 scripts/templates/references 的引用]
 
-## Resources (optional)
+## 资源（可选）
 
-Create only the resource directories this skill actually needs. Delete this section if no resources are required.
+仅为本技能真正需要的资源类型创建对应目录。不需要时请删除本节。
 
 ### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
 
-**Examples from other skills:**
-- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - utilities for PDF manipulation
-- DOCX skill: `document.py`, `utilities.py` - Python modules for document processing
+可直接执行的脚本（Python/Bash 等），用于特定操作或自动化。
 
-**Appropriate for:** Python scripts, shell scripts, or any executable code that performs automation, data processing, or specific operations.
+**参考场景：**
+- PDF 技能：`fill_fillable_fields.py`、`extract_form_field_info.py` —— PDF 表单处理
+- DOCX 技能：`document.py`、`utilities.py` —— 文档处理模块
 
-**Note:** Scripts may be executed without loading into context, but can still be read by Codex for patching or environment adjustments.
+**适合存放：** Python 脚本、shell 脚本等可执行代码，用于自动化、数据处理或特定操作。
+
+**注意：** 脚本可在不加载到上下文的前提下执行，但代理仍可能读取以便打补丁或适配环境。
 
 ### references/
-Documentation and reference material intended to be loaded into context to inform Codex's process and thinking.
 
-**Examples from other skills:**
-- Product management: `communication.md`, `context_building.md` - detailed workflow guides
-- BigQuery: API reference documentation and query examples
-- Finance: Schema documentation, company policies
+供代理按需读入上下文的文档与参考资料。
 
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Codex should reference while working.
+**参考场景：**
+- 产品管理：`communication.md`、`context_building.md` —— 详细工作流手册
+- BigQuery：API 参考、查询示例
+- 财务：schema 文档、公司政策
+
+**适合存放：** 深度文档、API 参考、数据库 schema、完整指南，或任何代理工作时需要查阅的详细信息。
 
 ### assets/
-Files not intended to be loaded into context, but rather used within the output Codex produces.
 
-**Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
+不进入代理上下文、但会出现在代理最终产物里的文件。
 
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
+**参考场景：**
+- 品牌规范：PPT 模板（.pptx）、logo 图片
+- 前端脚手架：HTML/React 样板项目目录
+- 排版：字体文件（.ttf、.woff2）
+
+**适合存放：** 模板、样板代码、文档模板、图片、图标、字体，或任何需要被复制/嵌入到最终产物的文件。
 
 ---
 
-**Not every skill requires all three types of resources.**
+**并非所有技能都需要这三类资源。**
 """
 
 EXAMPLE_SCRIPT = '''#!/usr/bin/env python3
 """
-Example helper script for {skill_name}
+{skill_name} 的示例辅助脚本
 
-This is a placeholder script that can be executed directly.
-Replace with actual implementation or delete if not needed.
+这是一个占位脚本，可直接执行。请替换为实际实现或删除。
 
-Example real scripts from other skills:
-- pdf/scripts/fill_fillable_fields.py - Fills PDF form fields
-- pdf/scripts/convert_pdf_to_images.py - Converts PDF pages to images
+其他技能中的真实脚本参考：
+- pdf/scripts/fill_fillable_fields.py —— 填写 PDF 表单域
+- pdf/scripts/convert_pdf_to_images.py —— PDF 转图片
 """
 
 def main():
     print("This is an example script for {skill_name}")
-    # TODO: Add actual script logic here
-    # This could be data processing, file conversion, API calls, etc.
+    # TODO：在此处实现实际逻辑（数据处理、格式转换、API 调用等）
 
 if __name__ == "__main__":
     main()
 '''
 
-EXAMPLE_REFERENCE = """# Reference Documentation for {skill_title}
+EXAMPLE_REFERENCE = """# {skill_title} 参考文档
 
-This is a placeholder for detailed reference documentation.
-Replace with actual reference content or delete if not needed.
+占位文档，请替换为真实参考内容，或在不需要时删除。
 
-Example real reference docs from other skills:
-- product-management/references/communication.md - Comprehensive guide for status updates
-- product-management/references/context_building.md - Deep-dive on gathering context
-- bigquery/references/ - API references and query examples
+其他技能中的真实参考文档参考：
+- product-management/references/communication.md —— 状态同步完整手册
+- product-management/references/context_building.md —— 上下文收集深度指南
+- bigquery/references/ —— API 参考与查询示例
 
-## When Reference Docs Are Useful
+## 什么时候需要参考文档
 
-Reference docs are ideal for:
-- Comprehensive API documentation
-- Detailed workflow guides
-- Complex multi-step processes
-- Information too lengthy for main SKILL.md
-- Content that's only needed for specific use cases
+参考文档适合承载：
+- 完整的 API 文档
+- 详细的工作流指南
+- 复杂的多步骤流程
+- SKILL.md 放不下的长内容
+- 仅在特定场景才需要读取的资料
 
-## Structure Suggestions
+## 结构建议
 
-### API Reference Example
-- Overview
-- Authentication
-- Endpoints with examples
-- Error codes
-- Rate limits
+### API 参考示例
+- 概述
+- 鉴权
+- 端点与示例
+- 错误码
+- 限流策略
 
-### Workflow Guide Example
-- Prerequisites
-- Step-by-step instructions
-- Common patterns
-- Troubleshooting
-- Best practices
+### 工作流指南示例
+- 前置条件
+- 步骤说明
+- 常见模式
+- 排障
+- 最佳实践
 """
 
-EXAMPLE_ASSET = """# Example Asset File
+EXAMPLE_ASSET = """# 示例资产文件
 
-This placeholder represents where asset files would be stored.
-Replace with actual asset files (templates, images, fonts, etc.) or delete if not needed.
+占位内容，用于演示 assets/ 目录的摆放位置。请替换为真实资产文件（模板、图片、字体等），或在不需要时删除。
 
-Asset files are NOT intended to be loaded into context, but rather used within
-the output Codex produces.
+资产文件不会被加载到代理上下文，而是被代理在最终产物中使用。
 
-Example asset files from other skills:
-- Brand guidelines: logo.png, slides_template.pptx
-- Frontend builder: hello-world/ directory with HTML/React boilerplate
-- Typography: custom-font.ttf, font-family.woff2
-- Data: sample_data.csv, test_dataset.json
+其他技能中的真实资产参考：
+- 品牌规范：logo.png、slides_template.pptx
+- 前端脚手架：hello-world/ 样板目录（含 HTML/React 源文件）
+- 排版：custom-font.ttf、font-family.woff2
+- 数据：sample_data.csv、test_dataset.json
 
-## Common Asset Types
+## 常见资产类型
 
-- Templates: .pptx, .docx, boilerplate directories
-- Images: .png, .jpg, .svg, .gif
-- Fonts: .ttf, .otf, .woff, .woff2
-- Boilerplate code: Project directories, starter files
-- Icons: .ico, .svg
-- Data files: .csv, .json, .xml, .yaml
+- 模板：.pptx、.docx、样板项目目录
+- 图片：.png、.jpg、.svg、.gif
+- 字体：.ttf、.otf、.woff、.woff2
+- 样板代码：项目目录、起始文件
+- 图标：.ico、.svg
+- 数据：.csv、.json、.xml、.yaml
 
-Note: This is a text placeholder. Actual assets can be any file type.
+备注：本文件是文本占位；实际资产可以是任何文件类型。
 """
 
 
 def normalize_skill_name(skill_name):
-    """Normalize a skill name to lowercase hyphen-case."""
+    """把技能名规范化为 kebab-case（小写+连字符）。"""
     normalized = skill_name.strip().lower()
     normalized = re.sub(r"[^a-z0-9]+", "-", normalized)
     normalized = normalized.strip("-")
@@ -201,19 +225,20 @@ def normalize_skill_name(skill_name):
 
 
 def title_case_skill_name(skill_name):
-    """Convert hyphenated skill name to Title Case for display."""
+    """把 kebab-case 技能名转为 Title Case（仅用于显示）。"""
     return " ".join(word.capitalize() for word in skill_name.split("-"))
 
 
 def parse_resources(raw_resources):
+    """解析 --resources 参数为唯一资源列表。"""
     if not raw_resources:
         return []
     resources = [item.strip() for item in raw_resources.split(",") if item.strip()]
     invalid = sorted({item for item in resources if item not in ALLOWED_RESOURCES})
     if invalid:
         allowed = ", ".join(sorted(ALLOWED_RESOURCES))
-        print(f"[ERROR] Unknown resource type(s): {', '.join(invalid)}")
-        print(f"   Allowed: {allowed}")
+        print(f"[ERROR] 未知资源类型：{', '.join(invalid)}")
+        print(f"   允许的取值：{allowed}")
         sys.exit(1)
     deduped = []
     seen = set()
@@ -224,7 +249,26 @@ def parse_resources(raw_resources):
     return deduped
 
 
+def resolve_output_path(explicit_path, skill_type):
+    """
+    根据用户输入推断技能的父目录。
+
+    优先级：
+    1. --path 显式指定 → 直接使用（不再做类型路由）
+    2. 提供 --type → 落到 `.specforge/skills/<类别目录>/`
+    3. 都未提供 → 落到 `.specforge/skills/<DEFAULT_SKILL_TYPE 对应目录>/`
+    """
+    if explicit_path:
+        return Path(explicit_path)
+
+    category_dir = SKILL_TYPE_TO_CATEGORY_DIR.get(skill_type)
+    if category_dir is None:
+        category_dir = SKILL_TYPE_TO_CATEGORY_DIR[DEFAULT_SKILL_TYPE]
+    return Path(SPECFORGE_SKILLS_ROOT) / category_dir
+
+
 def create_resource_dirs(skill_dir, skill_name, skill_title, resources, include_examples):
+    """按 resources 列表创建资源子目录，可选附带示例文件。"""
     for resource in resources:
         resource_dir = skill_dir / resource
         resource_dir.mkdir(exist_ok=True)
@@ -233,140 +277,168 @@ def create_resource_dirs(skill_dir, skill_name, skill_title, resources, include_
                 example_script = resource_dir / "example.py"
                 example_script.write_text(EXAMPLE_SCRIPT.format(skill_name=skill_name))
                 example_script.chmod(0o755)
-                print("[OK] Created scripts/example.py")
+                print("[OK] 已创建 scripts/example.py")
             else:
-                print("[OK] Created scripts/")
+                print("[OK] 已创建 scripts/")
         elif resource == "references":
             if include_examples:
                 example_reference = resource_dir / "api_reference.md"
                 example_reference.write_text(EXAMPLE_REFERENCE.format(skill_title=skill_title))
-                print("[OK] Created references/api_reference.md")
+                print("[OK] 已创建 references/api_reference.md")
             else:
-                print("[OK] Created references/")
+                print("[OK] 已创建 references/")
         elif resource == "assets":
             if include_examples:
                 example_asset = resource_dir / "example_asset.txt"
                 example_asset.write_text(EXAMPLE_ASSET)
-                print("[OK] Created assets/example_asset.txt")
+                print("[OK] 已创建 assets/example_asset.txt")
             else:
-                print("[OK] Created assets/")
+                print("[OK] 已创建 assets/")
 
 
-def init_skill(skill_name, path, resources, include_examples):
+def init_skill(skill_name, skill_type, path, resources, include_examples, author):
     """
-    Initialize a new skill directory with template SKILL.md.
+    在指定位置初始化新技能目录并生成 SKILL.md 模板。
 
     Args:
-        skill_name: Name of the skill
-        path: Path where the skill directory should be created
-        resources: Resource directories to create
-        include_examples: Whether to create example files in resource directories
+        skill_name: 技能名（kebab-case）
+        skill_type: 技能类型（写入 frontmatter，同时用于自动路由）
+        path: 技能父目录 Path
+        resources: 要创建的资源子目录列表
+        include_examples: 是否生成示例文件
+        author: frontmatter 中的 author 字段
 
     Returns:
-        Path to created skill directory, or None if error
+        已创建技能目录的 Path，失败时返回 None
     """
-    # Determine skill directory path
     skill_dir = Path(path).resolve() / skill_name
 
-    # Check if directory already exists
     if skill_dir.exists():
-        print(f"[ERROR] Skill directory already exists: {skill_dir}")
+        print(f"[ERROR] 技能目录已存在：{skill_dir}")
         return None
 
-    # Create skill directory
     try:
         skill_dir.mkdir(parents=True, exist_ok=False)
-        print(f"[OK] Created skill directory: {skill_dir}")
+        print(f"[OK] 已创建技能目录：{skill_dir}")
     except Exception as e:
-        print(f"[ERROR] Error creating directory: {e}")
+        print(f"[ERROR] 创建目录失败：{e}")
         return None
 
-    # Create SKILL.md from template
     skill_title = title_case_skill_name(skill_name)
-    skill_content = SKILL_TEMPLATE.format(skill_name=skill_name, skill_title=skill_title)
+    skill_content = SKILL_TEMPLATE.format(
+        skill_name=skill_name,
+        skill_type=skill_type,
+        skill_title=skill_title,
+        author=author,
+    )
 
     skill_md_path = skill_dir / "SKILL.md"
     try:
         skill_md_path.write_text(skill_content)
-        print("[OK] Created SKILL.md")
+        print("[OK] 已创建 SKILL.md")
     except Exception as e:
-        print(f"[ERROR] Error creating SKILL.md: {e}")
+        print(f"[ERROR] 创建 SKILL.md 失败：{e}")
         return None
 
-    # Create resource directories if requested
     if resources:
         try:
             create_resource_dirs(skill_dir, skill_name, skill_title, resources, include_examples)
         except Exception as e:
-            print(f"[ERROR] Error creating resource directories: {e}")
+            print(f"[ERROR] 创建资源目录失败：{e}")
             return None
 
-    # Print next steps
-    print(f"\n[OK] Skill '{skill_name}' initialized successfully at {skill_dir}")
-    print("\nNext steps:")
-    print("1. Edit SKILL.md to complete the TODO items and update the description")
+    print(f"\n[OK] 技能 '{skill_name}' 已初始化：{skill_dir}")
+    print("\n下一步：")
+    print("1. 编辑 SKILL.md，完成 TODO 并补全 description")
     if resources:
         if include_examples:
-            print("2. Customize or delete the example files in scripts/, references/, and assets/")
+            print("2. 定制或删除 scripts/、references/、assets/ 中的示例文件")
         else:
-            print("2. Add resources to scripts/, references/, and assets/ as needed")
+            print("2. 按需在 scripts/、references/、assets/ 中补充资源")
     else:
-        print("2. Create resource directories only if needed (scripts/, references/, assets/)")
-    print("3. Run the validator when ready to check the skill structure")
+        print("2. 仅在真正需要时创建 scripts/、references/、assets/ 目录")
+    print("3. 准备好后运行 quick_validate.py 校验技能结构")
 
     return skill_dir
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Create a new skill directory with a SKILL.md template.",
+        description="创建新的 SpecForge 技能目录并生成 SKILL.md 模板。",
     )
-    parser.add_argument("skill_name", help="Skill name (normalized to hyphen-case)")
-    parser.add_argument("--path", required=True, help="Output directory for the skill")
+    parser.add_argument("skill_name", help="技能名（会被规范化为 kebab-case）")
+    parser.add_argument(
+        "--type",
+        dest="skill_type",
+        default=DEFAULT_SKILL_TYPE,
+        choices=sorted(SKILL_TYPE_TO_CATEGORY_DIR.keys()),
+        help=(
+            "技能类型；未显式指定 --path 时会自动路由到 "
+            ".specforge/skills/<类别目录>/（默认：%(default)s）"
+        ),
+    )
+    parser.add_argument(
+        "--path",
+        default=None,
+        help="技能父目录；不传时按 --type 自动路由到 .specforge/skills/<类别目录>/",
+    )
+    parser.add_argument(
+        "--author",
+        default=DEFAULT_AUTHOR,
+        help=f"写入 frontmatter 的作者标识（默认：{DEFAULT_AUTHOR}）",
+    )
     parser.add_argument(
         "--resources",
         default="",
-        help="Comma-separated list: scripts,references,assets",
+        help="逗号分隔的资源目录：scripts,references,assets",
     )
     parser.add_argument(
         "--examples",
         action="store_true",
-        help="Create example files inside the selected resource directories",
+        help="在所选资源目录中生成示例文件",
     )
     args = parser.parse_args()
 
     raw_skill_name = args.skill_name
     skill_name = normalize_skill_name(raw_skill_name)
     if not skill_name:
-        print("[ERROR] Skill name must include at least one letter or digit.")
+        print("[ERROR] 技能名至少需要包含一个字母或数字。")
         sys.exit(1)
     if len(skill_name) > MAX_SKILL_NAME_LENGTH:
         print(
-            f"[ERROR] Skill name '{skill_name}' is too long ({len(skill_name)} characters). "
-            f"Maximum is {MAX_SKILL_NAME_LENGTH} characters."
+            f"[ERROR] 技能名 '{skill_name}' 过长（{len(skill_name)} 字符）。"
+            f"上限为 {MAX_SKILL_NAME_LENGTH} 字符。"
         )
         sys.exit(1)
     if skill_name != raw_skill_name:
-        print(f"Note: Normalized skill name from '{raw_skill_name}' to '{skill_name}'.")
+        print(f"提示：已把技能名从 '{raw_skill_name}' 规范化为 '{skill_name}'。")
 
     resources = parse_resources(args.resources)
     if args.examples and not resources:
-        print("[ERROR] --examples requires --resources to be set.")
+        print("[ERROR] --examples 需要同时指定 --resources。")
         sys.exit(1)
 
-    path = args.path
+    output_root = resolve_output_path(args.path, args.skill_type)
 
-    print(f"Initializing skill: {skill_name}")
-    print(f"   Location: {path}")
+    print(f"初始化技能：{skill_name}")
+    print(f"   类型：{args.skill_type}")
+    print(f"   目标目录：{output_root}")
     if resources:
-        print(f"   Resources: {', '.join(resources)}")
+        print(f"   资源：{', '.join(resources)}")
         if args.examples:
-            print("   Examples: enabled")
+            print("   示例：已启用")
     else:
-        print("   Resources: none (create as needed)")
+        print("   资源：无（按需再创建）")
     print()
 
-    result = init_skill(skill_name, path, resources, args.examples)
+    result = init_skill(
+        skill_name=skill_name,
+        skill_type=args.skill_type,
+        path=output_root,
+        resources=resources,
+        include_examples=args.examples,
+        author=args.author,
+    )
 
     if result:
         sys.exit(0)

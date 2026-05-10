@@ -1,6 +1,9 @@
 ---
 name: docs-sync
+type: workflow-step
 description: 基于 git 差异增量同步项目对外文档。每次触发读取项目根目录的 state 文件中的上次同步 SHA，汇总该 SHA 到当前 HEAD 之间的所有变动（提交记录 + 文件改动），按项目约定把变动写回相应文档，完成后把最新 HEAD SHA 持久化回 state 文件。通用适用于任何 git 仓库与任意一组对外文档（README / CHANGELOG / AGENTS / CONTRIBUTING / API docs 等）。触发词：`update docs`、`sync docs`、`docs-sync`、`refresh documentation`、`文档同步`、`更新文档`、`更新 README`、`更新 CHANGELOG`、"看一下最近改了什么然后更新文档"、"基于 git 变更刷新对外文档"。适用场景：仓库累积了一批 commit 后需要把源码、模板、CI、依赖、命令等变动反映到对外文档里；不适用于从零创建文档或一次性大改版。
+version: "1.0.0"
+author: "wta"
 ---
 
 # Docs Sync — 基于 Git 差异的项目文档同步工作流

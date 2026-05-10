@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
-Quick validation script for skills - minimal version
+技能快速校验脚本（最小版本）
+
+校验 SKILL.md frontmatter 是否符合 SpecForge 的最小契约：
+- 存在闭合的 frontmatter 栅栏
+- frontmatter 为 YAML 字典
+- 至少包含 name 与 description
+- 其余键必须在允许集合内（SpecForge 5 字段 + 兼容性扩展字段）
+- name 合法 kebab-case 且长度 ≤ 64
+- description 不含尖括号且长度 ≤ 1024
+
+注意：为保持回归测试稳定，部分错误消息保持英文原串不变。
 """
 
 import re
@@ -17,6 +27,7 @@ MAX_SKILL_NAME_LENGTH = 64
 
 
 def _extract_frontmatter(content: str) -> Optional[str]:
+    """从 SKILL.md 中抽取位于首尾 `---` 栅栏之间的 YAML frontmatter。"""
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return None
@@ -26,13 +37,31 @@ def _extract_frontmatter(content: str) -> Optional[str]:
     return None
 
 
+_BLOCK_SCALAR_INDICATORS = {">", ">-", ">+", "|", "|-", "|+"}
+
+
 def _parse_simple_frontmatter(frontmatter_text: str) -> Optional[dict[str, str]]:
     """
-    Minimal fallback parser used when PyYAML is unavailable.
-    Supports simple `key: value` mappings used by SKILL.md frontmatter.
+    PyYAML 不可用时的最小回退解析器。
+
+    支持：
+    - 简单 `key: value` 映射
+    - 单/双引号字面值
+    - YAML 块标量指示符（`>`、`>-`、`>+`、`|`、`|-`、`|+`），折叠 (`>`) 以空格连接
+      行，字面 (`|`) 以换行连接；不保留 YAML 指示符本身，避免与 description 校验冲突
     """
     parsed: dict[str, str] = {}
     current_key: Optional[str] = None
+    # 当前键是否处于块标量模式，及其折叠方式（"fold" | "literal" | None）
+    block_mode: Optional[str] = None
+
+    def unquote(value: str) -> str:
+        if (value.startswith('"') and value.endswith('"')) or (
+            value.startswith("'") and value.endswith("'")
+        ):
+            return value[1:-1]
+        return value
+
     for raw_line in frontmatter_text.splitlines():
         stripped = raw_line.strip()
         if not stripped or stripped.startswith("#"):
@@ -43,9 +72,21 @@ def _parse_simple_frontmatter(frontmatter_text: str) -> Optional[dict[str, str]]
             if current_key is None:
                 return None
             current_value = parsed[current_key]
-            parsed[current_key] = (
-                f"{current_value}\n{stripped}" if current_value else stripped
-            )
+            if block_mode == "fold":
+                # 折叠风格 (>)：以空格连接
+                parsed[current_key] = (
+                    f"{current_value} {stripped}" if current_value else stripped
+                )
+            elif block_mode == "literal":
+                # 字面风格 (|)：保留换行
+                parsed[current_key] = (
+                    f"{current_value}\n{stripped}" if current_value else stripped
+                )
+            else:
+                # 普通多行续行：退化为换行拼接（保持旧行为）
+                parsed[current_key] = (
+                    f"{current_value}\n{stripped}" if current_value else stripped
+                )
             continue
 
         if ":" not in stripped:
@@ -55,17 +96,22 @@ def _parse_simple_frontmatter(frontmatter_text: str) -> Optional[dict[str, str]]
         value = value.strip()
         if not key:
             return None
-        if (value.startswith('"') and value.endswith('"')) or (
-            value.startswith("'") and value.endswith("'")
-        ):
-            value = value[1:-1]
-        parsed[key] = value
+
+        if value in _BLOCK_SCALAR_INDICATORS:
+            # 进入块标量模式；实际值由后续缩进行提供
+            parsed[key] = ""
+            current_key = key
+            block_mode = "literal" if value.startswith("|") else "fold"
+            continue
+
+        parsed[key] = unquote(value)
         current_key = key
+        block_mode = None
     return parsed
 
 
 def validate_skill(skill_path):
-    """Basic validation of a skill"""
+    """对一个技能目录做基础校验，返回 (是否通过, 文案)。"""
     skill_path = Path(skill_path)
 
     skill_md = skill_path / "SKILL.md"
@@ -95,7 +141,19 @@ def validate_skill(skill_path):
                 "Invalid YAML in frontmatter: unsupported syntax without PyYAML installed",
             )
 
-    allowed_properties = {"name", "description", "license", "allowed-tools", "metadata"}
+    # SpecForge 统一 5 字段 + 兼容历史字段
+    allowed_properties = {
+        # SpecForge 统一 5 字段
+        "name",
+        "type",
+        "description",
+        "version",
+        "author",
+        # 兼容历史/外部字段
+        "license",
+        "allowed-tools",
+        "metadata",
+    }
 
     unexpected_keys = set(frontmatter.keys()) - allowed_properties
     if unexpected_keys:

@@ -16,6 +16,26 @@
 
 ---
 
+## [0.0.5] — 2026-05-10
+
+### 新增
+
+- **模板**：新增 `templates/.specforge/skills/workflow-steps/docs-sync/` —— 把仓库级 `docs-sync` 技能（基于 git 差异的增量文档同步工作流）同步为项目级可复用模板，附 `references/`（readme / agents / changelog / state-json-schema 四份契约）
+- **模板**：`skill-creator` 汉化并补齐 5 字段 frontmatter（`type: workflow-step`、`version`、`author`），`init_skill.py` / `package_skill.py` / `quick_validate.py` 三个脚本同步刷新
+- **文档同步基线**：仓库根新增 `.docs-sync-state.json`，作为 docs-sync 工作流的事实来源
+
+### 变更
+
+- **docs-sync（仓库级）**：SKILL.md 与四份 references 重写为通用化版本（不再硬编码 SpecForge 语境），新增 `templates/state.json.tmpl` 首次运行骨架
+- **AGENTS.md**：新增"注意"小节，规范长文件的分批读/分块写策略与中断后的退回路径
+
+### 移除
+
+- 删除仓库级 `.agents/skills/docs-sync/state.json`（已迁移为仓库根 `.docs-sync-state.json`，不再放在技能目录内）
+- 删除 `templates/.specforge/skills/workflow-steps/skill-creator/-`（无意义的空文件残留）
+
+---
+
 ## [0.0.4] — 2026-05-10
 
 ### 新增
@@ -136,7 +156,8 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.4...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.5...HEAD)
+- [0.0.5](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.5)
 - [0.0.4](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.4)
 - [0.0.3](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.3)
 - [0.0.2](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.2)
