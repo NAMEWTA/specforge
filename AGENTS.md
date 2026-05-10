@@ -227,6 +227,15 @@ spec-kit 风格的 before/after 钩子。键名 `before_<phase>` / `after_<phase
 - 仓库运营与发布：`.agents/skills/github-ops/SKILL.md`
 - 文档同步工作流：`.agents/skills/docs-sync/SKILL.md`
 
+## 语言与本地化
+
+- 与用户交互时使用**中文**，包括问答、解释、确认等所有对话场景
+- 代码注释使用中文（仓库惯例），保持与现有代码风格一致
+- 文档编写（包括 README、CHANGELOGS、spec 文档、commit message 描述体）使用中文
+- 变量名、函数名、类型名等标识符使用英文（遵循 TypeScript/编程通用惯例）
+- commit message 的 type 前缀使用英文（`feat:` / `fix:` / `docs:` 等），描述部分使用中文
+- 生成的模板文件中，用户可见的说明文字使用中文，YAML 键名和技术标识使用英文
+
 ## 注意
 - 读取文件内容较多时，应分批读取，避免一次性加载过大内容导致上下文溢出。
 - 写入文件内容较多时，应分块写入，避免单次大批量写入导致操作中断。

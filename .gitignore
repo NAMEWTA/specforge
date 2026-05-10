@@ -43,10 +43,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# 本地初始化产物（仅仓库根目录）
-/.specforge/
-/specforge/
-
 # Python 字节码缓存（skill 脚本使用 Python，__pycache__ 不入库）
 __pycache__/
 *.pyc

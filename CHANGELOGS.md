@@ -16,6 +16,26 @@
 
 ---
 
+## [0.0.6] — 2026-05-10
+
+### 新增
+
+- **模板（语言栈技能扩容）**：新增 6 个符合 SpecForge 三级渐进披露契约的技能模板，统一 5 字段 frontmatter、description ≤ 200 字、正文 ≤ 500 行：
+  - `code-styles/python-patterns` —— Python 惯用法与代码风格（PEP 8、类型注解、EAFP、dataclass、装饰器、并发选型、pyproject 工具链）
+  - `code-styles/pytorch-patterns` —— PyTorch 设备无关代码、可复现实验、训练/评估循环、DataLoader、AMP、checkpoint、`torch.compile`
+  - `testing/python-testing-pytest` —— pytest 断言、fixture 分层、parametrize、mock 与 patch 口诀、async 测试、tmp_path、覆盖率门禁
+  - `testing/springboot-tdd` —— JUnit 5 + Mockito、`@WebMvcTest` / `@DataJpaTest` / `@SpringBootTest` 切片矩阵、Testcontainers、JaCoCo 门禁
+  - `workflow-steps/springboot-verification` —— Spring Boot 发布前六相闭环（构建 / 静态 / 测试 + 覆盖率 / 安全扫描 / 格式化 / diff review）
+  - `security/springboot-security` —— Spring Security 生产基线（认证授权、Bean Validation、CSRF/CORS/响应头、密码哈希、秘密管理、限流、上传、日志脱敏、依赖 CVE）
+- **模板**：新增 `ui-ux/editorial-minimalism` —— 对标 Linear / Raycast / Arc 的 Editorial Minimalism 设计规范（Tailwind + Framer Motion + Lucide，OKLCH + Accent-Dim + rounded-2xl + Bento Grid）
+
+### 变更
+
+- **AGENTS.md**：新增"语言与本地化"小节，统一约定用户交互 / 代码注释 / 文档 / commit message / 模板文案的中英文使用边界
+- **skills 目录整理**：移除仓库级 `.agents/skills/` 下的 docs-sync / github-ops / skill-creator 镜像（已迁移至 `.specforge/skills/` 与 `templates/.specforge/skills/` 的单一事实来源，避免双写）
+
+---
+
 ## [0.0.5] — 2026-05-10
 
 ### 新增
@@ -156,7 +176,8 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.5...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.6...HEAD)
+- [0.0.6](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.6)
 - [0.0.5](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.5)
 - [0.0.4](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.4)
 - [0.0.3](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.3)
