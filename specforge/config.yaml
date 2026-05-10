@@ -1,30 +1,140 @@
 schema: specforge-project/v1
 
 # ============================================================
-# SpecForge 项目级配置（模板机器源）
+# SpecForge 项目级配置（@namewta/specforge 本仓库自用）
 #
-# 这是用户资产 `specforge/` 的核心机器可读入口。
-# 项目初始化后应在 `specforge/config.yaml` 中维护真实内容。
-#
-# 优先级约定：
-# - 该文件中的 rules/errors/context 覆盖/追加 `.specforge/config.yaml`
+# 本文件是用户资产（`specforge/`），`specforge update` 不会覆盖。
+# 优先级约定：本文件中的 context / rules / errors 覆盖/追加 `.specforge/config.yaml`。
 # ============================================================
 
+# ------------------------------------------------------------
+# 项目真实上下文（供 AI 代理直接加载）
+# ------------------------------------------------------------
 context: |
-  项目名称：specforge-cli
+  项目名称：@namewta/specforge（全局命令 `specforge`）
+  定位：AI-native 规格驱动开发（spec-driven development）工作流 CLI；本仓库自举（自己开发自己）。
 
-  请在这里维护“对当前项目真实且稳定”的上下文：
-  - 技术栈（语言/运行时/框架/包管理器/测试框架）
-  - 架构约束（单体/微服务、模块边界、部署形态）
-  - 领域术语（链接到 specforge/context/glossary.md，如有）
-  - 关键非功能需求（性能、安全、合规、可用性）
-  - 仓库约定（分支策略、提交规范、CI 命令）
+  技术栈：
+  - 语言：TypeScript 5.6.3（strict，moduleResolution=NodeNext）
+  - 运行时：Node.js ≥ 24.14.1
+  - 包管理器：pnpm（pnpm-lock.yaml 为事实来源；禁止 npm / yarn）
+  - CLI 框架：commander@14 + inquirer@12 + chalk@5 + ora@8
+  - Schema 校验：zod@4
+  - 文件操作：fs-extra@11 + globby@14 + js-yaml@4
+  - 测试：vitest@2.1
+  - Lint / 格式：eslint@9 + typescript-eslint@8 + prettier@3
+  - 构建：tsc + scripts/inject-shebang.mjs
+  - CI/CD：GitHub Actions（ci.yml / release.yml / label-pr.yml / dependabot.yml）
 
+  架构约束：
+  - 双目录模型：`.specforge/` 框架资产（可被 update 重生成） + `specforge/` 用户资产（事实来源，框架不覆盖）
+  - 分层：cli → commands → services → core + utils + adapters，严格单向依赖
+  - `src/` 与 `templates/` 语义双写一致
+  - ESM + NodeNext：import 必带 `.js` 后缀
+  - 日志统一走 `src/utils/logger.ts`，禁止直接 `console.log`（CLI JSON/XML 数据输出除外）
+
+  生命周期（标准 Profile，8 阶段）：
+  foundation → requirements → design → planning → implementation → quality → release → evolution
+
+  文案惯例：
+  - 用户面向文案、错误消息、代码注释、文档、commit 描述使用中文
+  - 标识符（变量/函数/类型/schema 键名）使用英文
+  - commit type 前缀使用英文（Conventional Commits）
+
+  术语入口：见 `specforge/project.md#领域术语glossary` 与 `specforge/context/glossary.md`（如有）。
+
+  关键非功能需求：
+  - CLI 冷启动 ≤ 500ms（Node 24 + SSD）
+  - 核心命令（init / status / doctor / profile）离线可用
+  - npm publish 必须通过 `pnpm check`（lint + test + build）+ `verify-bin` 双重门禁
+  - 发布仅由 tag(v*) 触发 release.yml，禁止本地 publish
+
+# ------------------------------------------------------------
+# 项目级可执行规则（覆盖/扩展框架默认）
+# ------------------------------------------------------------
 rules:
   project:
-    - "本项目的规则在此维护；必要时可覆盖框架默认规则。"
-    - "所有新增规则必须可执行（可转化为检查清单问题）。"
+    # ---- 架构与双目录模型 ----
+    - id: dualDirectoryBoundary
+      statement: "业务事实一律写入 `specforge/`；`.specforge/` 只能放可被 `specforge update` 重生成的框架资产。"
+      rationale: "防止下一次 update 覆盖用户数据。"
+    - id: templateCodeParity
+      statement: "修改 `templates/` 必须同步更新 `src/services/scaffold-service.ts` 及其集成测试；修改 CLI 行为必须同步更新命令、技能、测试。"
+      rationale: "双目录语义一致是本仓库的核心不变量。"
+    - id: layerDependencyDirection
+      statement: "依赖方向必须是 cli → commands → services → core + utils + adapters，禁止反向依赖。"
+      rationale: "保持领域核心（core）可单测、可复用。"
 
+    # ---- 语言与模块系统 ----
+    - id: esmJsSuffix
+      statement: "所有源码 import 路径必须显式带 `.js` 后缀（NodeNext ESM 规范）。"
+      rationale: "不带后缀会在 Node 运行时直接报错。"
+    - id: strictTypescript
+      statement: "保持 `tsconfig.json` 的 strict 模式不变，禁止局部关闭 strictness。"
+      rationale: "类型安全是本项目的底线约束。"
+    - id: asyncAwaitOnly
+      statement: "异步统一使用 `async/await`，禁止使用 `.then` 链。"
+      rationale: "保持代码风格一致。"
+
+    # ---- 元数据与渐进披露 ----
+    - id: unifiedFrontmatter5Fields
+      statement: "所有 command 与 skill 的 frontmatter 必须包含统一 5 字段：name / type / description / version / author。"
+      rationale: "统一元数据是 `list` / `doctor` 检查和三级渐进披露的基础。"
+    - id: commandTypeSuffix
+      statement: "命令 type 必须以 `-command` 结尾；技能 type 不得以 `-command` 结尾。由 `isCommandType()` / `isSkillType()` 判定。"
+      rationale: "类型命名即契约，直接影响路由与 listing 行为。"
+    - id: progressiveDisclosureContract
+      statement: "L1 frontmatter description ≤ 200 字符；L2 正文 ≤ 500 行；L3（`references/` / `scripts/` / `templates/`）必须从 L2 被引用。"
+      rationale: "防止 context overload（错误 E005_contextOverload）。"
+
+    # ---- 生命周期与 Profile ----
+    - id: phaseEnumSync
+      statement: "新增/修改阶段或 profile 选项必须同步更新 `src/core/` 中的 LIFECYCLE_TYPES / BUILTIN_PROFILES / PHASE_TO_WORKFLOW_DIR / PHASE_DEPENDENCIES / PHASE_ARTIFACTS / PHASE_COMMANDS。"
+      rationale: "漏改其一会导致 scaffold 拷贝不全或 status 失真。"
+    - id: commandSkillTypeRegister
+      statement: "新增命令类型/技能类型必须在 COMMAND_TYPES / SKILL_TYPES 注册，并补 `isValidCommandType` / `isValidSkillType` 单测。"
+      rationale: "类型枚举是对外契约。"
+
+    # ---- 日志与输出 ----
+    - id: unifiedLogger
+      statement: "日志统一走 `src/utils/logger.ts`，禁止直接 `console.log`（CLI JSON/XML 数据输出例外）。"
+      rationale: "确保彩色开关、级别、格式一致。"
+
+    # ---- 文案与本地化 ----
+    - id: chineseUserFacingText
+      statement: "用户可见文案（错误消息、CLI 输出、文档、模板说明）、代码注释、commit 描述一律使用中文；标识符、schema 键名、commit type 前缀用英文。"
+      rationale: "团队惯例；保证 AI 代理生成内容与仓库一致。"
+
+    # ---- 测试 ----
+    - id: testCoverageMapping
+      statement: "新增 `src/services/*.ts` 必须在 `tests/unit/services/` 加对应 `.test.ts`；新增 core 领域类型必须在 `tests/unit/core/` 加对应 `.test.ts`。"
+      rationale: "保持单测目录与源码一一对应。"
+    - id: testMustPassBeforeCommit
+      statement: "`pnpm test` 必须全绿才允许提交；监听模式由用户手动运行，AI 代理禁止启动。"
+      rationale: "避免破坏性改动进入主干；避免 agent 挂起。"
+
+    # ---- Git / 发布 ----
+    - id: conventionalCommits
+      statement: "提交遵循 Conventional Commits：`feat:` / `fix:` / `docs:` / `chore:` / `refactor:` / `test:` / `ci:`，描述部分使用中文。"
+      rationale: "驱动 changelog 自动化与 PR 标签。"
+    - id: noDirectMainPush
+      statement: "禁止直接推 `main`；发布只能通过 `v*` tag 触发 `release.yml`。"
+      rationale: "protecting main + provenance 发布链。"
+    - id: prepublishCheck
+      statement: "`prepublishOnly = pnpm check`（lint + test + build）为硬门禁，禁止本地绕过。"
+      rationale: "保证 npm 上的每个版本都过了 CI 同等级别校验。"
+    - id: syncChangelogOnPublicChange
+      statement: "改动涉及模板或 CLI 对外行为时，必须同步更新 `CHANGELOGS.md` 的 `[Unreleased]` 段。"
+      rationale: "changelog 是 AI/人类阅读版本差异的事实来源。"
+
+    # ---- AI 代理行为 ----
+    - id: batchReadWriteForLongFiles
+      statement: "读取/写入长文件必须分批进行；写入中断（aborted）后自动切换为分段写入重试；优先使用 SubAgent 处理大文件分块。"
+      rationale: "防止上下文溢出和操作中断。"
+
+# ------------------------------------------------------------
+# 项目特定错误沉淀
+# ------------------------------------------------------------
 errors:
   P001_projectSpecific:
     title: "项目特定错误占位"
@@ -33,3 +143,40 @@ errors:
     fix:
       - "给出可重复执行的修复步骤，并指出应该更新哪条规则/哪个技能。"
 
+  P002_dualDirectoryViolation:
+    title: "双目录边界被违反"
+    signals:
+      - "业务事实（规格、变更、归档、项目上下文）出现在 `.specforge/` 中"
+      - "框架资产（command / skill 模板、框架级 config）出现在 `specforge/` 中"
+    fix:
+      - "把业务事实迁回 `specforge/` 对应目录"
+      - "把框架资产迁回 `templates/.specforge/` 或 `.specforge/`"
+      - "检查 `src/services/scaffold-service.ts` 是否在错误位置生成文件"
+
+  P003_missingJsSuffix:
+    title: "ESM import 缺失 `.js` 后缀"
+    signals:
+      - "运行时报 `ERR_MODULE_NOT_FOUND` 或 `Cannot find module './foo'`"
+      - "tsc 通过但 `tsx src/...` 启动即失败"
+    fix:
+      - "把 `import './foo'` 改为 `import './foo.js'`"
+      - "在 eslint 配置中启用 `import/extensions` 规则（若尚未启用）"
+
+  P004_frontmatter5FieldsMissing:
+    title: "command / skill frontmatter 不满足统一 5 字段"
+    signals:
+      - "`specforge list` 输出缺字段或报错"
+      - "`specforge doctor` 报 metadata schema 失败"
+    fix:
+      - "补齐 `name / type / description / version / author` 五字段"
+      - "description 长度 ≤ 200 字符"
+      - "type 值必须来自 `COMMAND_TYPES` 或 `SKILL_TYPES`"
+
+  P005_disclosureOverflow:
+    title: "渐进披露契约溢出（L2 > 500 行 或 description > 200 字符 或 L3 未被 L2 引用）"
+    signals:
+      - "`specforge doctor --check-disclosure` 报 `E005_contextOverload`"
+    fix:
+      - "把长内容迁移到 `references/` 并在 L2 中显式引用"
+      - "精简 description 到 ≤ 200 字符"
+      - "拆分 L2 正文，使其 ≤ 500 行"
