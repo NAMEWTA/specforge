@@ -1,223 +1,228 @@
-# AGENTS.md
+# AGENTS.md — SpecForge CLI 项目 AI 协作指南
 
-本文档为所有 AI 编码代理（Claude Code、Cursor、Codex、Kiro、Aider 等）在本仓库工作时提供统一的指引。遵循 [agents.md](https://agents.md/) 约定。
+> 本文件是给 AI 代理（Claude、Cursor、Kiro、Codex、GPT、Gemini 等）阅读的项目工作手册。  
+> 面向开发本仓库（`@namewta/specforge`）本身的场景；如果你是在被初始化的目标项目中，请改读该项目的 `specforge/project.md`。
 
-## 项目概述
+## 1. 项目身份
 
-**SpecForge** 是一个 AI 原生的规格驱动开发工作流 CLI 工具，综合了多个成熟项目的最佳实践：
+- **包名**：`@namewta/specforge`
+- **定位**：AI-native 规格驱动开发（spec-driven development）工作流 CLI
+- **语言/运行时**：TypeScript（严格模式）/ Node.js ≥ 24.14.1
+- **分发形式**：npm 包 + `specforge` 全局命令
+- **包管理器**：pnpm（`pnpm-lock.yaml` 是事实来源，勿用 npm/yarn）
+- **许可证**：MIT
 
-- **OpenSpec** — 双目录分离、产物 DAG、渐进式披露
-- **gstack** — Preamble 初始化、多维评审
-- **superpowers-zh** — 技能链编排、铁律约束、子代理驱动
-- **spec-kit** — 扩展钩子、宪法治理、显式 Handoff
-- **skills-main** — 技能创建方法论、渐进式披露
-- **claude-task-master** — Handlebars 模板、复杂度分析
-- **grill-me** — 多视角质询框架
+## 2. 核心架构（必读）
 
-当前版本：`v0.0.2`（早期开发阶段）。`references/` 目录包含被研究项目的完整源码，用于借鉴与融合。
+### 2.1 双目录模型
 
-## 语言规范
-
-**所有场景默认使用中文。**
-
-- 代码注释、函数命名文档、README、文档均使用中文
-- 与用户的交互使用中文
-- 生成的项目内容（README、spec、skill 等）默认使用中文
-- 仅当依赖的外部 API、库、标准库本身要求英文时例外（如 npm 包名、保留字）
-
-## 技术栈
-
-- **运行时**：Node.js >= 24.14.1，纯 ESM（`"type": "module"`）
-- **语言**：TypeScript 5.6，`NodeNext` 模块解析
-- **包管理**：pnpm
-- **CLI**：Commander 14
-- **数据校验**：Zod 4
-- **文件系统**：fs-extra、globby
-- **交互**：inquirer、chalk、ora
-- **测试**：Vitest
-- **代码规范**：ESLint 9（flat config）+ Prettier 3
-
-## 常用命令
-
-```bash
-pnpm dev -- --help                         # 开发模式运行 CLI
-pnpm build                                 # TypeScript 编译
-pnpm test                                  # 运行所有测试
-pnpm test tests/unit/utils/path.test.ts    # 运行单个测试文件
-pnpm lint                                  # ESLint 检查
-pnpm format                                # Prettier 格式化
-pnpm check                                 # lint + test + build 一站式检查
-```
-
-提交前应运行 `pnpm check` 确保通过。
-
-## 项目结构
+SpecForge 在被初始化的项目里生成两层目录，**本仓库自己也遵守这个模型**（仓库根忽略 `/specforge/` 与 `/.specforge/`，它们属于本地初始化产物而不是代码）：
 
 ```
-bin/specforge.ts            # CLI 入口（tsx shebang → src/cli/index.ts）
+.specforge/        框架资产：commands / skills / templates / config.yaml / extensions.yaml
+                   —— 可被 `specforge update` 重新生成，禁止手改后期望长期保留
+specforge/         用户资产：project.md / config.yaml / spec / brainstorming / context / changes / archive
+                   —— 事实来源，框架绝不自动覆盖
+```
+
+本仓库自身的代码在 `src/`，模板机器源在 `templates/`（发布时随包一起打进 npm tarball）。
+
+### 2.2 8 阶段生命周期
+
+`foundation → requirements → design → planning → implementation → quality → release → evolution`
+
+- 运维（runbook / 监控 / 告警 / 回滚）语义合并进 `release`，不再单列阶段
+- 阶段间通过 **产物 DAG** 衔接：`PROPOSAL.md → DESIGN.md → TASKS.md → QUALITY-REPORT.md → archive/ → RETROSPECTIVE.md`
+- DAG 状态机在 `src/core/artifact-graph.ts`，三态：`BLOCKED / READY / DONE`
+
+### 2.3 Profile 体系
+
+- `minimal`：5 阶段（foundation, requirements, implementation, quality, release）
+- `standard`：8 阶段全启（**默认**）
+- `custom`：用户声明 `enabledPhases`
+- 实现：`src/core/profiles.ts`；配置优先级 `specforge/config.yaml` > `.specforge/config.yaml` > 内置默认
+
+### 2.4 元数据统一 5 字段
+
+所有 command / skill frontmatter 必须包含：`name / type / description / version / author`。
+
+- **命令** `type` 以 `-command` 结尾（`workflow-command`、`tool-command`、`devflow-command`、`gitflow-command`）
+- **技能** `type` 不以 `-command` 结尾（`domain-rule`、`code-style`、`architecture-rule`、`testing-rule`、`security-rule`、`ui-ux-rule`、`workflow-step`）
+- 判定函数：`isCommandType()` / `isSkillType()`（`src/core/type-values.ts`）
+
+### 2.5 三级渐进披露契约
+
+| 层级 | 载入时机 | 内容 | 阈值 |
+|------|---------|------|------|
+| L1 Always | 始终加载 | YAML frontmatter（name + type + description） | description ≤ 200 字符 |
+| L2 On Trigger | 命中触发词 | SKILL.md / command.md 主体 | ≤ 500 行 |
+| L3 On Demand | 按需 | `references/`、`scripts/`、`templates/` | 必须从 L2 被引用 |
+
+`specforge doctor --check-disclosure` 校验此契约，违例触发 `E005_contextOverload`。
+
+## 3. 仓库布局
+
+```
+bin/specforge.ts                  开发时入口（tsx 直跑）
 src/
-  cli/index.ts              # Commander 程序，每个命令通过 dynamic import() 懒加载
-  commands/                 # CLI 命令类，仅校验输入并编排服务层
-    init.ts | add-command.ts | add-skill.ts | list.ts | status.ts | update.ts
-    doctor.ts | profile.ts | run-hook.ts
-  services/                 # 业务逻辑层
-    scaffold-service.ts     # init：根据 templates/ 创建 .specforge/ + specforge/
-    command-service.ts      # add-command：生成命令 .md 文件
-    skill-service.ts        # add-skill：生成技能文件
-    listing-service.ts      # list：glob + frontmatter 发现 commands 与 skills
-    hooks-service.ts        # run-hook：加载并执行扩展钩子
-    update-service.ts       # update：刷新框架资产
-    status-service.ts       # status：查询阶段与 DAG 状态
-  core/                     # 共享类型、常量、Zod Schema
-    constants.ts            # 目录/文件名常量
-    lifecycle-types.ts      # 8 个生命周期阶段
-    metadata-schema.ts      # frontmatter 元数据 Schema
-    profiles.ts             # minimal/standard/custom profile
-    artifact-graph.ts       # 产物 DAG 状态机（BLOCKED/READY/DONE）
-    hooks.ts                # 扩展钩子 schema 与 phase 校验
-    compatibility.ts        # 检测已有 .specforge/，警告破坏性覆盖
-    preamble.ts             # 技能 Preamble 生成
-    type-values.ts          # 类型常量
-  utils/                    # 纯工具层（无业务逻辑）
-    fs.ts                   # fs-extra 封装
-    logger.ts               # Chalk 日志
-    path.ts                 # 路径工具
-    template-renderer.ts    # {{placeholder}} 模板替换
-    yaml.ts                 # YAML 解析 + frontmatter 提取
-  adapters/
-    windows-filename-adapter.ts  # Windows 禁止字符清洗
-templates/                  # 初始化时的模板资产
-  .specforge/               # 框架资产模板
-  specforge/                # 用户资产模板
-references/                 # 参考项目分析文档
+├── index.ts                      公共 API 再导出
+├── cli/index.ts                  Commander 路由 —— 所有命令注册
+├── commands/                     命令实现（init/add-command/add-skill/list/status/update/run-hook/profile/doctor）
+├── services/                     业务服务（scaffold/command/skill/listing/status/update/hooks）
+├── core/                         领域模型（constants/lifecycle-types/profiles/hooks/artifact-graph/metadata-schema/compatibility/preamble/type-values）
+├── utils/                        基础设施（fs/yaml/path/logger/template-renderer）
+└── adapters/                     平台适配（windows-filename-adapter）
+
+templates/
+├── .specforge/                   模板 → 项目 .specforge/
+│   ├── commands/workflow/*       8 个 workflow command（foundation-init … evolution-retrospect）
+│   ├── commands/tools/*          tool command（debugging 等）
+│   ├── skills/<category>/*       7 类技能
+│   ├── templates/                产物模板（PROPOSAL.md/DESIGN.md/TASKS.md/CHECKLIST.md/RETROSPECTIVE.md）
+│   ├── config.yaml               框架级机器源
+│   └── extensions.yaml           钩子声明
+└── specforge/                    模板 → 项目 specforge/
+    ├── project.md                项目元数据（含 {{projectName}} 占位符）
+    ├── config.yaml               项目级机器源
+    ├── spec/, brainstorming/, context/, changes/, archive/
+
+scripts/
+├── inject-shebang.mjs            build 后向 dist/cli/index.js 注入 shebang
+└── verify-bin.mjs                publish 前验证 bin 产物可执行
+
+tests/
+├── unit/                         单测（core/services/commands/utils/scripts/adapters）
+└── integration/                  集成测（全生命周期、模板 scaffold）
+
+.github/
+├── actions/setup/                composite action（Node + pnpm + cache + install）
+├── workflows/ci.yml              lint + test + build
+├── workflows/release.yml         tag 触发：verify-bin → pnpm publish → softprops/action-gh-release
+├── workflows/label-pr.yml        PR 自动打标
+├── dependabot.yml                npm + github-actions 周更
+└── labeler.yml                   路径→标签映射
 ```
 
-## 初始化后的目录结构
+## 4. 开发命令
 
-`specforge init` 生成以下双目录结构：
+| 场景 | 命令 |
+|------|------|
+| 启动开发（tsx 直跑源码） | `pnpm dev <args>` |
+| 编译（含 shebang 注入） | `pnpm build` |
+| 单元测试一次 | `pnpm test` |
+| 监听式运行测试 | **不要使用**；请告知用户手动运行 `pnpm vitest` |
+| Lint | `pnpm lint` |
+| 格式化 | `pnpm format` |
+| 发布前全量校验 | `pnpm check`（= lint + test + build） |
+| 验证 bin 产物 | `pnpm build:check-bin`（= `node scripts/verify-bin.mjs`） |
 
-```
-project/
-├── .specforge/             # 框架资产（由 specforge update 管理，勿手动修改）
-│   ├── commands/
-│   ├── skills/
-│   │   ├── architecture/
-│   │   ├── code-styles/
-│   │   ├── domain-rules/
-│   │   ├── security/
-│   │   ├── testing/
-│   │   ├── ui-ux/
-│   │   └── workflow-steps/
-│   └── templates/
-└── specforge/              # 用户资产（用户管理，update 不触碰）
-    ├── project.md          # 项目元数据
-    ├── context/            # 项目上下文
-    ├── spec/               # 当前规格（事实来源）
-    ├── changes/            # 活跃的变更提案
-    └── archive/            # 已完成的变更归档
-```
+**发布前 checklist（由 `prepublishOnly` 强制）**：`pnpm check` 必须通过。
 
-## 生命周期阶段
+## 5. CLI 命令速查
 
-```
-foundation      → 从 0 到 1 的初始化与可行性
-requirements    → 需求澄清与结构化
-design          → 方案与架构设计
-planning        → 任务拆解与依赖编排
-implementation  → 开发实现与代码交付
-quality         → 测试、审查、修复闭环
-release         → 部署、发布、上线与运维移交（含 runbook/监控/告警/回滚）
-evolution       → 复盘、沉淀、归档
-```
+本仓库生产的 CLI 自己是 AI 代理在"被初始化项目"中最常调用的工具。以下表格是你在协作时要理解的入口：
 
-**注意**：`operations` 不是独立阶段，runbook/监控/告警/回滚均归属 `release`。
+| CLI 命令 | 作用 | 常用标志 |
+|----------|------|---------|
+| `specforge init [path]` | 初始化双目录 | `--project-name`、`--force`、`--profile {minimal\|standard\|custom}`、`--enabled-phases <a,b,c>` |
+| `specforge add-command` | 生成 command 骨架 | `--type <workflow-command\|tool-command>`、`--name <kebab-case>` |
+| `specforge add-skill <name>` | 生成 skill 骨架 | `--type <domain-rule\|...>`、`--mode <directory\|single-file>` |
+| `specforge list` | 列出命令/技能 | `--commands`、`--skills`、`--type <t>`、`--triggers <kw1,kw2>`、`--format <xml\|json\|text>` |
+| `specforge status` | 当前 change 阶段状态 | `--phase <name>`、`--check-requires`、`--graph`、`--json` |
+| `specforge update [path]` | 刷新 `.specforge/`（不碰 `specforge/`） | `--force` |
+| `specforge run-hook` | 跑 `extensions.yaml` 钩子 | `--phase <name>`、`--stage <before\|after>`、`--json` |
+| `specforge profile show` | 显示当前 profile | `--json` |
+| `specforge profile set <name>` | 切换 profile（写入 `specforge/config.yaml`） | `--enabled-phases <a,b,c>`（仅 custom） |
+| `specforge doctor` | 项目诊断 | `--check-deps`、`--check-node`、`--check-compat`、`--check-disclosure`、`--quiet` |
 
-## 关键设计原则
+全局：`--no-color` 禁用彩色输出；Commander `--version` 读取 `package.json`。
 
-1. **纯 ESM + 懒加载** — 每个命令在运行时 `await import()`，保证 `--help` 快速响应
-2. **双目录模型** — `.specforge/`（框架）vs `specforge/`（用户），`update` 可安全重新生成框架资产而不触碰用户内容
-3. **分层架构** — `commands/` 只校验输入并编排，`services/` 承载业务逻辑，`utils/` 保持纯净
-4. **模板变量** — 使用 `{{variableName}}` 语法，由 `template-renderer.ts` 渲染
-5. **Frontmatter 驱动** — 所有 `.md` 文件使用 YAML frontmatter，由 `core/metadata-schema.ts` 的 Zod Schema 校验
-6. **产物 DAG** — 阶段产物形成有向无环图，`status` 命令揭示就绪态
-7. **语言无关工作流** — 命令模板描述抽象动作（test/lint/build），具体命令从 `language-adapters` 技能读取
-8. **扩展钩子** — 项目在 `.specforge/extensions.yaml` 声明 before/after 阶段钩子
+## 6. 扩展机制
 
-## 编码约定
+### 6.1 Preamble（命令体内嵌的 bash 块）
 
-### 通用规范
+command / skill 主体可声明 `<!-- preamble:bash ... -->` 块，AI 在加载命令时可按需解析执行（见 `src/core/preamble.ts`）：
 
-- 使用 TypeScript 严格模式，导入路径带 `.js` 扩展名（NodeNext 要求）
-- 文件头部不要添加无意义注释，保持简洁
-- 函数优先于类，除非需要状态封装
-- 错误处理使用显式 `Error` 实例或自定义错误类，避免 `throw 'string'`
-- 日志统一通过 `src/utils/logger.ts`（`info/success/warn/error/debug`），不要直接 `console.log`
-- 路径操作统一通过 `src/utils/path.ts`（`resolveProjectRoot/joinPath/toPosixPath` 等），不要直接拼字符串
-
-### 格式化
-
-Prettier 配置（见 `package.json`）：
-
-- `semi: true`
-- `singleQuote: true`
-- `trailingComma: "all"`
-- `printWidth: 100`
-- `tabWidth: 2`
-
-提交前运行 `pnpm format` 或依赖 `lint-staged` 自动处理。
-
-### 命令与服务的职责划分
-
-- `src/commands/*.ts` — 仅负责参数解析、用户交互、调用服务层，**不包含业务逻辑**
-- `src/services/*.ts` — 承载核心业务流程，可读写文件系统、调用 core/utils
-- `src/core/*.ts` — 定义共享类型、常量、Schema，**不依赖文件系统**
-- `src/utils/*.ts` — 纯工具函数，**不依赖业务概念**
-
-## 工作流程
-
-### 新增 CLI 命令
-
-1. 在 `src/commands/` 新增命令类
-2. 在 `src/cli/index.ts` 通过 `program.command().action(async () => { const { X } = await import('../commands/X.js'); ... })` 注册
-3. 业务逻辑下沉到 `src/services/`
-4. 新增 Zod Schema 到 `src/core/metadata-schema.ts`（如涉及 frontmatter）
-5. 补充测试
-
-### 新增技能或命令模板
-
-- 技能放入 `templates/.specforge/skills/<category>/<skill-name>/SKILL.md`
-- 命令模板放入 `templates/.specforge/commands/<group>/<name>/<name>.md`
-- 不要在模板正文硬编码单一技术栈的命令，应引用 `language-adapters`
-
-### 修改后验证
-
-任何改动后至少执行：
-
-```bash
-pnpm lint
-pnpm test
-pnpm build
+```markdown
+<!-- preamble:bash
+specforge list --skills --triggers=test,qa --format=json
+specforge status --phase=quality --check-requires
+specforge doctor --check-deps --quiet
+-->
 ```
 
-或一次性：`pnpm check`。
+### 6.2 Extensions Hooks（`.specforge/extensions.yaml`）
 
-## 注意事项
+spec-kit 风格的 before/after 钩子。键名 `before_<phase>` / `after_<phase>`，串行执行，必需钩子失败即阻断；`optional: true` 的钩子失败仅 warn。
 
-- **不要手动修改 `.specforge/` 下的框架资产**；它们由 `specforge init` 和 `specforge update` 生成
-- **不要在 `specforge/` 下生成框架代码**；那是用户区
-- **不要引入新依赖**，除非明确必要；优先使用已有依赖（chalk、commander、fs-extra、globby、inquirer、js-yaml、ora、zod）
-- **不要直接操作 `process.cwd()`**；使用 `src/utils/path.ts` 的 `resolveProjectRoot`
-- **不要破坏 ESM 约定**（import 带 `.js`、禁用 CommonJS `require`）
-- **不要在 CLI 顶层同步 import 命令模块**，必须 `await import()` 以维持启动性能
-- 修改 `templates/` 时考虑对现有已初始化项目的兼容影响，必要时在 `update-service.ts` 补充迁移逻辑
+由 `specforge run-hook --phase <p> --stage <s>` 在命令的 preamble 中触发。实现：`src/core/hooks.ts` + `src/services/hooks-service.ts`。
 
-## 参考资料
+### 6.3 产物 DAG（`src/core/artifact-graph.ts`）
 
-- [README.md](README.md) — 用户视角的功能介绍与用法
-- [CLAUDE.md](CLAUDE.md) — Claude Code 专用指引（中文）
-- [references/reference-projects-analysis.md](references/reference-projects-analysis.md) — 参考项目的详细分析
-- [templates/](templates/) — 初始化模板源
+标准图：`proposal → design → tasks → quality-report → archive → retrospective`（`tasks` 同时依赖 `proposal` 和 `design`）。
 
-## 许可证
+状态规则：
+- `DONE`：对应文件存在
+- `READY`：所有 `requires` 已 DONE，但本产物自身未生成
+- `BLOCKED`：至少一个依赖未 DONE（`blockedBy` 字段给出原因）
 
-MIT
+状态机包含循环依赖检测（DFS 三色）与重复 id / 未知依赖校验。
+
+## 7. AI 代理行为规约
+
+### 7.1 改代码前必查
+
+1. 任务涉及**命令行为** → 先读 `src/cli/index.ts` + 对应 `src/commands/*.ts` + 对应 `src/services/*.ts`
+2. 任务涉及**模板产物** → 先看 `templates/` 对应文件 + `src/services/scaffold-service.ts`
+3. 任务涉及**类型/元数据校验** → 先读 `src/core/metadata-schema.ts` + `src/core/type-values.ts`
+4. 任务涉及**生命周期/Profile** → 先读 `src/core/lifecycle-types.ts` + `src/core/profiles.ts`
+
+### 7.2 改代码时必做
+
+- 保持 `src/` 与 `templates/` 的双目录语义一致：改模板要跟进 `scaffold-service.ts`，改 CLI 行为要跟进命令/技能/测试
+- 所有新 command / skill 必须符合 **统一 5 字段 frontmatter** 和 **三级渐进披露契约**
+- 新增生命周期阶段或 profile 选项必须同时更新 `LIFECYCLE_TYPES`、`BUILTIN_PROFILES`、`PHASE_TO_WORKFLOW_DIR`、`PHASE_DEPENDENCIES`、`PHASE_ARTIFACTS`、`PHASE_COMMANDS`
+- 新增命令类型 / 技能类型必须在 `COMMAND_TYPES` / `SKILL_TYPES` 注册，并附 `isValidCommandType` / `isValidSkillType` 测试
+
+### 7.3 写代码风格
+
+- TypeScript **strict 模式**（`tsconfig.json`），不要放开 strictness
+- 模块系统 NodeNext，文件内 `import` 使用 `.js` 后缀（ES Module 规范）
+- 错误消息使用**中文**（用户面向）；代码注释也用中文（仓库惯例）
+- 使用 `src/utils/logger.ts` 输出（`logger.info/success/warn/error`），不要直接 `console.log`，除非是 CLI 数据输出（JSON/XML 格式）
+- 异步用 `async/await`，避免 `.then` 链
+- Schema 校验统一走 `zod`
+
+### 7.4 测试要求
+
+- 新增 service → 在 `tests/unit/services/` 加对应 `.test.ts`
+- 新增 core 领域类型 → 在 `tests/unit/core/` 加对应 `.test.ts`
+- 新增命令行为 → 优先在 `tests/unit/commands/` 加用例；跨命令联动在 `tests/integration/` 加场景
+- 运行 `pnpm test` 必须全绿再提交
+
+### 7.5 发布与 Git 约定
+
+- **提交规范**：Conventional Commits（`feat:` / `fix:` / `docs:` / `chore:` / `refactor:` / `test:` / `ci:`）
+- **禁止**：直接推 `main`（release.yml 由 `v*` tag 触发，版本号必须与 `package.json` 对齐）
+- **发布流水线**：tag → setup → lint → test → build → **verify-bin** → npm publish（`--provenance --access public`）→ softprops/action-gh-release
+- 改动涉及模板或 CLI 对外行为时同步更新 `CHANGELOGS.md`
+
+## 8. 常见陷阱
+
+| 陷阱 | 说明 |
+|------|------|
+| 忘记 `.js` 后缀 | NodeNext ESM 下 `import './foo'` 会在运行时报错，必须写 `import './foo.js'` |
+| 直接 `npm publish` | 会绕过 `prepublishOnly` 校验；始终走 tag → release.yml |
+| 改 `templates/` 不跑 test | 模板变更要同步看 `tests/integration/scaffold-templates.test.ts` |
+| 命令名不合 kebab-case | `CommandService.generateCommand` 会抛错；skill 名同理 |
+| 在 `.specforge/` 里写业务数据 | 会被 `specforge update` 覆盖；所有项目事实来源放 `specforge/` |
+| 加新阶段忘了 `PHASE_TO_WORKFLOW_DIR` | `scaffold-service` 找不到模板目录，profile custom 会复制不全 |
+
+## 9. 相关文档
+
+- 用户面向介绍：`README.md` / `README-ZH.md`
+- 版本历史：`CHANGELOGS.md`
+- 当前活跃 spec：`.kiro/specs/cicd-and-templates-optimization/`
+- 模板机器源：`templates/.specforge/config.yaml`（全文注释型）
+- 仓库运营与发布：`.agents/skills/github-ops/SKILL.md`
+- 文档同步工作流：`.agents/skills/docs-sync/SKILL.md`
