@@ -49,5 +49,5 @@ __pycache__/
 *.pyo
 
 .kiro/
-.specforge/
-specforge/
+/.specforge/
+/specforge/
