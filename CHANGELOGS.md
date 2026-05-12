@@ -8,6 +8,21 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 重命名 `templates/.specforge/skills/ui-ux/mantine-ui/` 为 `mantine/`（简化命名）
+- 增强 `UpdateService`：支持检测并补全缺失的用户资产文件（`context.md` / `architecture.md` / `lessons.md`）
+- 改进 `specforge update` 命令输出：显示补全的用户资产文件列表
+
+### Fixed
+
+- 修复 `.gitignore` 误忽略 `templates/` 子目录导致模板文件缺失的问题
+- 补全缺失的模板文件（`templates/.specforge/` 下的 workflow commands 和 skills）
+
+### Added
+
+- Mantine UI skill 新增参考文档：`advanced-patterns.md`、`hooks-cheatsheet.md`、`spotlight-and-navigation.md`
+
 ---
 
 ## [0.0.7] — 2026-05-12

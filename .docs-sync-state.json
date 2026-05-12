@@ -8,17 +8,14 @@
     "AGENTS.md",
     "CHANGELOGS.md"
   ],
-  "last_sync_sha": "518c110449fa3248fbb899fed7fa48023213e915",
-  "last_sync_short": "518c110",
-  "last_sync_commit_subject": "feat: 新增 tool commands 与服务层，精简本地初始化产物",
-  "last_sync_commit_date": "2026-05-12T10:21:24+08:00",
-  "last_sync_run_at": "2026-05-12T02:25:00Z",
-  "previous_sync_sha": "2d16d7a4d7f5da165c565b9aa3265824be133214",
-  "total_syncs": 2,
+  "last_sync_sha": "d9f5cccb77d26698d05c8e22ceb800c14c945e50",
+  "last_sync_short": "d9f5ccc",
+  "last_sync_commit_subject": "refactor: 重命名 mantine-ui 为 mantine，增强 update 服务的用户资产补全功能",
+  "last_sync_commit_date": "2026-05-12T17:20:31+08:00",
+  "last_sync_run_at": "2026-05-12T09:24:39Z",
+  "previous_sync_sha": "518c110449fa3248fbb899fed7fa48023213e915",
+  "total_syncs": 3,
   "synced_docs": [
-    "README.md",
-    "README-ZH.md",
-    "AGENTS.md",
     "CHANGELOGS.md"
   ]
 }
