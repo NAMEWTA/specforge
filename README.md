@@ -46,16 +46,14 @@ SpecForge pins all of this to the filesystem. It generates `.specforge/` (framew
 .specforge/          # framework assets — regeneratable by `specforge update`
   ├── commands/      #   workflow + tool commands
   ├── skills/        #   7 skill categories
-  ├── templates/     #   artifact templates (PROPOSAL.md / DESIGN.md / TASKS.md …)
-  ├── config.yaml    #   framework-level machine source (context / rules / errors / handoffs)
-  └── extensions.yaml #  hook declarations
+  ├── templates/     #   artifact templates (DESIGN.md / TASKS.md / PROGRESS.md)
+  └── config.yaml    #   framework-level machine source (context / rules / errors / handoffs / hooks)
 
 specforge/           # user assets — source of truth, never auto-overwritten
-  ├── project.md     #   project metadata
   ├── config.yaml    #   project-level overrides / additions
   ├── spec/          #   current specifications
   ├── brainstorming/ #   brainstorm artifacts
-  ├── context/       #   glossary / ADRs / lessons
+  ├── context/       #   three-tier docs (context.md / architecture.md / lessons.md)
   ├── changes/       #   active changes
   └── archive/       #   completed changes
 ```
@@ -240,9 +238,9 @@ Project layout:
 ```
 src/
 ├── cli/             # Commander routes
-├── commands/        # command impls (init / add-* / list / status / update / run-hook / profile / doctor)
-├── services/        # business services (scaffold / command / skill / listing / status / update / hooks)
-├── core/            # domain (constants / lifecycle-types / profiles / artifact-graph / hooks / metadata-schema / ...)
+├── commands/        # command impls (init / add-* / list / status / update / run-hook / profile / doctor / codebase-health / project-inventory)
+├── services/        # business services (scaffold / command / skill / listing / status / update / hooks / health / inventory / lessons / design-explore / evolve / implementation)
+├── core/            # domain (constants / lifecycle-types / profiles / artifact-graph / hooks / metadata-schema / disclosure-config / task-schema / ...)
 ├── utils/           # infra (fs / yaml / path / logger / template-renderer)
 └── adapters/        # platform adapters (windows-filename-adapter)
 templates/           # init templates (shipped with the npm package)

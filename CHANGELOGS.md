@@ -26,12 +26,35 @@
 - `loadDisclosureConfig` 向后兼容加载（缺配置回退默认值）
 - 路由声明六要素 preamble（8 个 workflow command）
 - Token 成本预算章节（README.md / README-ZH.md）
+- **模板**：新增 `workflow-steps/language-adapters` skill（Go / Node / Python / Spring Boot 四语言适配器）
+- **服务层**：新增 `design-explore-service`（v0 草稿校验 + 既有架构对齐）
+- **服务层**：新增 `evolve-service`（架构沉淀同步 + LESSONS 提名）
+- **服务层**：新增 `health-service`（探针巡检 + 禁动清单 upsert）
+- **服务层**：新增 `implementation-service`（边界对账 + LESSONS grep）
+- **服务层**：新增 `inventory-service`（Brownfield 入场扫描 + AI 文档检测）
+- **服务层**：新增 `lessons-service`（L-NNN 条目 CRUD + 四条件过滤）
+- **Core**：新增 `disclosure-config`（L3 预算 + 路由声明配置加载）
+- **Core**：新增 `task-schema`（TASKS.md 结构化 Zod schema）
 
 ### Changed
 
 - Constitution 升版 1.0.0 → 1.1.0（新增 P9 反重复与验证前置）
 - `doctor --check-compat` 新增 P9 引用校验
 - TASKS 模板追加 `read_files` / `write_files` 字段
+- `.gitignore` 新增 `.specforge/` 和 `specforge/` 忽略规则（本地初始化产物不入库）
+- 从版本控制中移除 `.specforge/` 和 `specforge/` 目录（`git rm --cached`）
+- Workflow command 模板精简（移除冗余 v0-draft-template reference，优化 preamble）
+- `scaffold-service` 优化 context 文件创建逻辑（upsertUserAsset 语义）
+
+### Removed
+
+- 删除仓库级 `.agents/skills/` 目录（github-ops / skill-creator 已完全迁移至 `templates/.specforge/skills/`）
+- 删除 `CLAUDE.md`（内容已吸收进 AGENTS.md）
+- 删除 `UPGRADE_SUMMARY.md`（一次性文档，已完成使命）
+- 删除 `references/reference-projects-analysis.md`（内容已吸收进 README Heritage 表）
+- 删除 `templates/.specforge/commands/tools/debugging/`（tool command 示例已由 codebase-health / project-inventory 取代）
+- 删除 `.specforge/extensions.yaml`（钩子声明已内化到 config.yaml）
+- 删除 `.specforge/templates/` 中的 PROPOSAL.md / CHECKLIST.md / RETROSPECTIVE.md（精简为 DESIGN.md + TASKS.md + PROGRESS.md）
 
 ### Docs
 
@@ -45,12 +68,6 @@
 - P9 — 反重复与验证前置（antiRepetitionAndEvidence）
 - E009_scopeBoundaryViolation 错误码
 - E010_repeatedFailurePattern 错误码
-
-### 计划中
-
-- 完善产物模板（PROPOSAL.md / DESIGN.md / TASKS.md / CHECKLIST.md / RETROSPECTIVE.md）的默认章节与 `{{variableName}}` 占位符契约
-- 扩展技能覆盖面（architecture、testing、security、workflow-steps/language-adapters）
-- 强化 `specforge doctor --check-disclosure` 校验规则与错误消息
 
 ---
 

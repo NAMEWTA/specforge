@@ -46,16 +46,14 @@ SpecForge 把这些全部钉在文件系统上。它在你的仓库中生成 `.s
 .specforge/          # 框架资产——可被 `specforge update` 重新生成
   ├── commands/      #   workflow + tool 命令
   ├── skills/        #   7 类技能
-  ├── templates/     #   产物模板（PROPOSAL.md / DESIGN.md / TASKS.md …）
-  ├── config.yaml    #   框架级机器源（context / rules / errors / handoffs）
-  └── extensions.yaml #  钩子声明
+  ├── templates/     #   产物模板（DESIGN.md / TASKS.md / PROGRESS.md）
+  └── config.yaml    #   框架级机器源（context / rules / errors / handoffs / hooks）
 
 specforge/           # 用户资产——事实来源，框架绝不自动覆盖
-  ├── project.md     #   项目元数据
   ├── config.yaml    #   项目级覆盖/追加
   ├── spec/          #   当前规格
   ├── brainstorming/ #   头脑风暴产物
-  ├── context/       #   术语表 / ADR / 经验沉淀
+  ├── context/       #   三层文档（context.md / architecture.md / lessons.md）
   ├── changes/       #   活跃变更
   └── archive/       #   已归档变更
 ```
@@ -240,9 +238,9 @@ pnpm check           # lint + test + build（prepublishOnly 自动跑）
 ```
 src/
 ├── cli/             # Commander 路由
-├── commands/        # 命令实现（init / add-* / list / status / update / run-hook / profile / doctor）
-├── services/        # 业务服务（scaffold / command / skill / listing / status / update / hooks）
-├── core/            # 领域模型（constants / lifecycle-types / profiles / artifact-graph / hooks / metadata-schema / ...）
+├── commands/        # 命令实现（init / add-* / list / status / update / run-hook / profile / doctor / codebase-health / project-inventory）
+├── services/        # 业务服务（scaffold / command / skill / listing / status / update / hooks / health / inventory / lessons / design-explore / evolve / implementation）
+├── core/            # 领域模型（constants / lifecycle-types / profiles / artifact-graph / hooks / metadata-schema / disclosure-config / task-schema / ...）
 ├── utils/           # 基础设施（fs / yaml / path / logger / template-renderer）
 └── adapters/        # 平台适配（windows-filename-adapter）
 templates/           # 初始化模板（随 npm 包发布）

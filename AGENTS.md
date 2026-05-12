@@ -83,20 +83,19 @@ bin/specforge.ts                  开发时入口（tsx 直跑）
 src/
 ├── index.ts                      公共 API 再导出
 ├── cli/index.ts                  Commander 路由 —— 所有命令注册
-├── commands/                     命令实现（init/add-command/add-skill/list/status/update/run-hook/profile/doctor）
-├── services/                     业务服务（scaffold/command/skill/listing/status/update/hooks）
-├── core/                         领域模型（constants/lifecycle-types/profiles/hooks/artifact-graph/metadata-schema/compatibility/preamble/type-values）
+├── commands/                     命令实现（init/add-command/add-skill/list/status/update/run-hook/profile/doctor/codebase-health/project-inventory）
+├── services/                     业务服务（scaffold/command/skill/listing/status/update/hooks/health/inventory/lessons/design-explore/evolve/implementation）
+├── core/                         领域模型（constants/lifecycle-types/profiles/hooks/artifact-graph/metadata-schema/compatibility/preamble/type-values/disclosure-config/task-schema）
 ├── utils/                        基础设施（fs/yaml/path/logger/template-renderer）
 └── adapters/                     平台适配（windows-filename-adapter）
 
 templates/
 ├── .specforge/                   模板 → 项目 .specforge/
 │   ├── commands/workflow/*       8 个 workflow command（foundation-init … evolution-retrospect）
-│   ├── commands/tools/*          tool command（debugging 等）
+│   ├── commands/tools/*          tool command（codebase-health / project-inventory）
 │   ├── skills/<category>/*       7 类技能
-│   ├── templates/                产物模板（PROPOSAL.md/DESIGN.md/TASKS.md/CHECKLIST.md/RETROSPECTIVE.md）
-│   ├── config.yaml               框架级机器源
-│   └── extensions.yaml           钩子声明
+│   ├── templates/                产物模板（DESIGN.md/TASKS.md/PROGRESS.md）
+│   └── config.yaml               框架级机器源
 └── specforge/                    模板 → 项目 specforge/
     ├── project.md                项目元数据（含 {{projectName}} 占位符）
     ├── config.yaml               项目级机器源
@@ -264,12 +263,12 @@ workflow command 首轮加载的 `references/` 文件总行数（排除条件分
 
 - 用户面向介绍：`README.md` / `README-ZH.md`
 - 版本历史：`CHANGELOGS.md`
-- 当前活跃 spec：`.kiro/specs/cicd-and-templates-optimization/`
+- 当前活跃 spec：`.kiro/specs/flow-kit-integration/`
 - 模板机器源：`templates/.specforge/config.yaml`（全文注释型）
-- 仓库运营与发布：`.agents/skills/github-ops/SKILL.md`
-- 文档同步工作流：`.agents/skills/docs-sync/SKILL.md`
+- 仓库运营与发布：`templates/.specforge/skills/workflow-steps/github-ops/SKILL.md`
+- 文档同步工作流：`templates/.specforge/skills/workflow-steps/docs-sync/SKILL.md`
 - 方法论参考：[flow-kit](https://github.com/rihebty/flow-kit) by rihebty
-- 项目级知识：`specforge/context/context.md` / `architecture.md` / `lessons.md`
+- 项目级知识：`specforge/context/context.md` / `architecture.md` / `lessons.md`（本地初始化产物，不入库）
 
 ## 语言与本地化
 
