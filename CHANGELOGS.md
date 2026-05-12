@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+---
+
+## [0.0.8] — 2026-05-12
+
 ### Changed
 
 - 重命名 `templates/.specforge/skills/ui-ux/mantine-ui/` 为 `mantine/`（简化命名）
