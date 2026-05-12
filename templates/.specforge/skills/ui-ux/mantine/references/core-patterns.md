@@ -8,6 +8,8 @@
 - [表单校验模式](#表单校验模式)
 - [响应式模式](#响应式模式)
 - [多态组件](#多态组件)
+- [数据表格模式](#数据表格模式)
+- [覆盖层组合](#覆盖层组合)
 
 ## AppShell 布局
 
@@ -230,4 +232,209 @@ import { Link } from 'react-router-dom';
 <Button renderRoot={(props) => <Link to="/path" {...props} />}>
   类型安全的路由链接
 </Button>
+```
+
+
+## 数据表格模式
+
+### 可排序表格
+
+```tsx
+import { useState } from 'react';
+import { Table, UnstyledButton, Group, Text, Center, rem } from '@mantine/core';
+import { IconSelector, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+
+interface ThProps {
+  children: React.ReactNode;
+  reversed: boolean;
+  sorted: boolean;
+  onSort: () => void;
+}
+
+function Th({ children, reversed, sorted, onSort }: ThProps) {
+  const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
+  return (
+    <Table.Th>
+      <UnstyledButton onClick={onSort}>
+        <Group justify="space-between">
+          <Text fw={500} fz="sm">{children}</Text>
+          <Center><Icon size={16} stroke={1.5} /></Center>
+        </Group>
+      </UnstyledButton>
+    </Table.Th>
+  );
+}
+
+function SortableTable({ data }: { data: RowData[] }) {
+  const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
+  const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  const setSorting = (field: keyof RowData) => {
+    const reversed = field === sortBy ? !reverseSortDirection : false;
+    setReverseSortDirection(reversed);
+    setSortBy(field);
+  };
+
+  const sortedData = sortData(data, { sortBy, reversed: reverseSortDirection });
+
+  return (
+    <Table horizontalSpacing="md" verticalSpacing="xs" striped highlightOnHover>
+      <Table.Thead>
+        <Table.Tr>
+          <Th sorted={sortBy === 'name'} reversed={reverseSortDirection} onSort={() => setSorting('name')}>
+            名称
+          </Th>
+          <Th sorted={sortBy === 'email'} reversed={reverseSortDirection} onSort={() => setSorting('email')}>
+            邮箱
+          </Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {sortedData.map((row) => (
+          <Table.Tr key={row.id}>
+            <Table.Td>{row.name}</Table.Td>
+            <Table.Td>{row.email}</Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+}
+```
+
+### 可选择行
+
+```tsx
+import { useState } from 'react';
+import { Table, Checkbox } from '@mantine/core';
+
+function SelectableTable({ data }: { data: RowData[] }) {
+  const [selection, setSelection] = useState<string[]>([]);
+
+  const toggleRow = (id: string) =>
+    setSelection((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+
+  const toggleAll = () =>
+    setSelection((current) =>
+      current.length === data.length ? [] : data.map((item) => item.id)
+    );
+
+  return (
+    <Table>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>
+            <Checkbox
+              checked={selection.length === data.length}
+              indeterminate={selection.length > 0 && selection.length !== data.length}
+              onChange={toggleAll}
+            />
+          </Table.Th>
+          <Table.Th>名称</Table.Th>
+          <Table.Th>邮箱</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {data.map((item) => (
+          <Table.Tr key={item.id} bg={selection.includes(item.id) ? 'var(--mantine-color-blue-light)' : undefined}>
+            <Table.Td>
+              <Checkbox checked={selection.includes(item.id)} onChange={() => toggleRow(item.id)} />
+            </Table.Td>
+            <Table.Td>{item.name}</Table.Td>
+            <Table.Td>{item.email}</Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+}
+```
+
+## 覆盖层组合
+
+### Menu + ActionIcon
+
+```tsx
+import { Menu, ActionIcon, Text } from '@mantine/core';
+import { IconDots, IconPencil, IconTrash, IconCopy } from '@tabler/icons-react';
+
+function RowActions({ onEdit, onDelete, onDuplicate }: ActionProps) {
+  return (
+    <Menu shadow="md" width={200} position="bottom-end">
+      <Menu.Target>
+        <ActionIcon variant="subtle" color="gray">
+          <IconDots size={16} />
+        </ActionIcon>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>操作</Menu.Label>
+        <Menu.Item leftSection={<IconPencil size={14} />} onClick={onEdit}>
+          编辑
+        </Menu.Item>
+        <Menu.Item leftSection={<IconCopy size={14} />} onClick={onDuplicate}>
+          复制
+        </Menu.Item>
+        <Menu.Divider />
+        <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={onDelete}>
+          删除
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+```
+
+### Popover 确认
+
+```tsx
+import { Popover, Button, Text, Group } from '@mantine/core';
+
+function PopoverConfirm({ onConfirm, children }: { onConfirm: () => void; children: React.ReactNode }) {
+  const [opened, { close, open }] = useDisclosure(false);
+
+  return (
+    <Popover opened={opened} onClose={close} position="bottom" withArrow shadow="md">
+      <Popover.Target>
+        <div onClick={open}>{children}</div>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Text size="sm" mb="sm">确定要执行此操作吗？</Text>
+        <Group justify="flex-end" gap="xs">
+          <Button size="xs" variant="default" onClick={close}>取消</Button>
+          <Button size="xs" color="red" onClick={() => { onConfirm(); close(); }}>确认</Button>
+        </Group>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+```
+
+### Drawer 侧边面板
+
+```tsx
+import { Drawer, Button, Stack, TextInput } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+
+function FilterDrawer() {
+  const [opened, { open, close }] = useDisclosure(false);
+
+  return (
+    <>
+      <Drawer opened={opened} onClose={close} title="筛选条件" position="right" size="md">
+        <Stack>
+          <TextInput label="关键词" placeholder="搜索..." />
+          <Select label="状态" data={['全部', '活跃', '停用']} />
+          <DatePickerInput label="日期范围" type="range" />
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={close}>取消</Button>
+            <Button onClick={() => { applyFilters(); close(); }}>应用</Button>
+          </Group>
+        </Stack>
+      </Drawer>
+      <Button onClick={open}>筛选</Button>
+    </>
+  );
+}
 ```

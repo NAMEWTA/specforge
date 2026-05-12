@@ -34,7 +34,10 @@
     "templates",
     "!dist/**/*.test.js",
     "!dist/**/__tests__",
-    "!dist/**/*.map"
+    "!dist/**/*.map",
+    "!**/__pycache__",
+    "!**/*.pyc",
+    "!**/.DS_Store"
   ],
   "scripts": {
     "dev": "tsx src/cli/index.ts",
