@@ -12,7 +12,7 @@
 
 ## Heritage: Built on the Shoulders of Five Projects
 
-SpecForge does not reinvent spec-driven development — it **internalizes and fuses** the most battle-tested patterns from the open-source ecosystem into one coherent toolchain:
+SpecForge does not reinvent spec-driven development — it **internalizes and fuses** the most battle-tested patterns from the open-source ecosystem into one coherent toolchain. SpecForge absorbs the **methodology, not the implementation**, from each project listed below.
 
 | Source Project | What SpecForge Adopts |
 |---|---|
@@ -21,6 +21,7 @@ SpecForge does not reinvent spec-driven development — it **internalizes and fu
 | [**superpowers** (obra)](https://github.com/obra/superpowers) | Iron Laws hard gates, skill chaining / invocation, sub-agent-driven implementation, anti-evasion language, stress-test discipline |
 | [**claude-task-master** (eyaltoledano)](https://github.com/eyaltoledano/claude-task-master) | PRD → task decomposition pipeline, Zod-validated schemas, complexity analysis, structured response contracts |
 | [**Anthropic skills**](https://github.com/anthropics/skills) | Progressive disclosure (L1 frontmatter → L2 body → L3 `references/`), skill-creator methodology, benchmark-driven authoring |
+| [**flow-kit** (rihebty)](https://github.com/rihebty/flow-kit) | Brownfield five-guard system (entry scan, architecture alignment, read/write boundary, pre-commit reconciliation, existing abstraction grep), context-reset protocol with PROGRESS artifact, three-tier project documentation (rules / structure / LESSONS), L3 load budget (≤ 150 lines), v0 draft gate, LESSONS nomination with L-NNN format, token cost transparency |
 
 Also drawing on [spec-kit](https://github.com/github/spec-kit) for the constitution / extension-hooks pattern and on [grill-me](https://github.com/obra/grill-me) for multi-perspective interrogation.
 
@@ -258,6 +259,44 @@ Detailed architecture and collaboration rules in [`AGENTS.md`](AGENTS.md).
 - Rule: `package.json` version must match the git tag (minus the `v` prefix)
 - Dependabot scans npm and GitHub Actions deps weekly
 
+## Token Cost Budget
+
+> The ranges below are methodology-level workload estimates, **not precise measurements**; actual consumption varies with model, session length, codebase size, probe hit rate and other factors.
+
+### Scale Tiers
+
+| Change Scale | Lines of Code | Estimated Token Range (one full lifecycle) | Typical Scenario |
+|---|---|---|---|
+| Small change | < 100 lines | ~20k – 60k tokens | Single-point bugfix / minor feature addition |
+| Medium change | 100 – 500 lines | ~80k – 200k tokens | Single-module feature / partial refactor |
+| Medium-large change | 500 – 1500 lines | ~250k – 600k tokens | New service + several commands |
+| Large milestone | 1500+ lines | 600k+ tokens (consider splitting) | Cross-cutting overhaul (e.g. flow-kit integration) |
+
+### When to Use SpecForge
+
+- ✅ The change affects contracts across ≥ 2 modules
+- ✅ There are decisions or rules that need to be captured as project-level knowledge
+- ✅ The team needs an audit trail (which proposals were rejected and why)
+- ✅ A brownfield project is adopting AI collaboration for the first time (run project-inventory first)
+- ✅ Cross-phase artifact hand-offs are required (proposal → design → tasks → quality)
+
+### When NOT to Use SpecForge
+
+- ❌ One-off typo fixes / formatting / minor dependency bumps
+- ❌ Hotfixes requiring ≤ 5 lines of code
+- ❌ Throwaway exploratory scripts
+- ❌ Time-pressured scenarios where delivery quality is not critical (accept the cost of missing LESSONS)
+- ❌ Repetitive tasks with mature SOPs that generate no new knowledge
+
+### Six Habits to Save Tokens
+
+1. **Load inventory.md / context.md first**: Avoid re-introducing the project every session — let the agent jump straight into work
+2. **Respect write_files boundaries**: Crossing boundaries causes the AI to continuously expand its context window, with costs growing exponentially
+3. **Use v0 drafts**: A 500-word directional alignment is far cheaper than tearing down a detailed DESIGN and starting over
+4. **Observe the L3 load budget (≤ 150 lines)**: If content exceeds the budget, move it to `references/` for on-demand loading
+5. **Drop a PROGRESS note before clearing the session**: Prevents the agent from re-attempting already-eliminated approaches after recovery (triggers E010)
+6. **Run codebase-health regularly**: Write dead code and unused dependencies into the no-touch list to reduce accidental AI modifications
+
 ## Documentation
 
 - [`AGENTS.md`](AGENTS.md) — AI agent collaboration guide (mandatory for contributors using AI)
@@ -273,6 +312,7 @@ SpecForge stands on the shoulders of:
 - [**superpowers**](https://github.com/obra/superpowers) by obra — Iron Laws, skill chaining, sub-agent-driven development
 - [**claude-task-master**](https://github.com/eyaltoledano/claude-task-master) by eyaltoledano — PRD → tasks, complexity analysis
 - [**skills**](https://github.com/anthropics/skills) by Anthropic — progressive disclosure, skill-creator methodology
+- [**flow-kit**](https://github.com/rihebty/flow-kit) by rihebty — Brownfield guards, context-reset protocol, three-tier documentation, token cost transparency
 
 Thanks to the authors of every project listed above — their prior work is the reason this CLI could be built in weeks rather than months.
 

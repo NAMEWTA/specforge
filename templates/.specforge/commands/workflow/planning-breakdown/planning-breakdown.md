@@ -19,6 +19,22 @@ specforge status --phase=planning --check-requires
 specforge doctor --check-deps --quiet
 -->
 
+<!-- route-statement
+路由：planning-breakdown
+Change-ID：{{changeId}}
+已加载：
+  - planning-breakdown.md (本文件)
+  - DESIGN.md (技术方案与架构)
+未加载（后续按需）：
+  - references/planning-patterns.md（预算 40 行）
+  - references/phase-structure.md（预算 30 行）
+  - references/tdd-examples.md（预算 25 行）
+  - references/complexity-guide.md（预算 35 行）
+  - references/artifact-graph-spec.md（预算 20 行）
+第一动作：加载设计文档与产物图，确认任务拆解范围
+Token 预算估算：约 4000 tokens
+-->
+
 # 任务拆解与依赖编排
 
 ## Iron Law

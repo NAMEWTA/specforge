@@ -50,7 +50,23 @@ specforge/         用户资产：project.md / config.yaml / spec / brainstormin
 - **技能** `type` 不以 `-command` 结尾（`domain-rule`、`code-style`、`architecture-rule`、`testing-rule`、`security-rule`、`ui-ux-rule`、`workflow-step`）
 - 判定函数：`isCommandType()` / `isSkillType()`（`src/core/type-values.ts`）
 
-### 2.5 三级渐进披露契约
+### 2.5 宪法原则（P1–P9）
+
+`.specforge/constitution.md`（版本 1.1.0）定义 9 条不可绕开的宪法原则。其中 **P9 — 反重复与验证前置（antiRepetitionAndEvidence）** 要求：任何阶段的 AI 代理在同根因连续失败 ≥ 2 次时必须书面声明与已排除方案的差异，否则触发 `E010_repeatedFailurePattern` 暂停重试。P9 被 `implementation-build` / `quality-verify` / `context-reset-protocol` skill 三处显式引用。
+
+### 2.6 三层项目级文档体系
+
+用户资产目录 `specforge/context/` 下维护三份常驻文档：
+
+| 文件 | 层级 | 覆盖内容 |
+|------|------|---------|
+| `context.md` | Rules 层 | 技术栈 / 命名约定 / 既有抽象索引 / 禁动清单 / code-style |
+| `architecture.md` | Structure 层 | 模块图 / 依赖规则 / ADR 列表 / 跨模块契约 / 扩展点 / 容量边界 |
+| `lessons.md` | LESSONS 层 | 跨 change 失败知识索引（`L-NNN` 条目格式，12 字段） |
+
+三份文件由 `specforge init` 首次落盘（受 `upsertUserAsset` 语义保护），`specforge update` 不覆盖。`evolution-retrospect` 的架构沉淀同步 Step 可将 DESIGN § 9 候选条目 promote 到 `context.md` / `architecture.md`。
+
+### 2.7 三级渐进披露契约
 
 | 层级 | 载入时机 | 内容 | 阈值 |
 |------|---------|------|------|
@@ -207,6 +223,32 @@ spec-kit 风格的 before/after 钩子。键名 `before_<phase>` / `after_<phase
 - **发布流水线**：tag → setup → lint → test → build → **verify-bin** → npm publish（`--provenance --access public`）→ softprops/action-gh-release
 - 改动涉及模板或 CLI 对外行为时同步更新 `CHANGELOGS.md`
 
+### 7.6 L3 加载预算约束
+
+workflow command 首轮加载的 `references/` 文件总行数（排除条件分支"按需引用"）**不得超过 150 行**。违例由 `specforge doctor --check-disclosure` 报告 `E005_contextOverload`。配置位于 `.specforge/config.yaml#rules.global.progressiveDisclosure.level3_loadBudget`（`firstRoundTotalLinesMax: 150`）。
+
+### 7.7 路由声明六要素
+
+每个 workflow command 的 preamble **必须**输出以下六要素：
+
+1. **路由**（当前阶段 / 命令名）
+2. **Change-ID**（当前 change 标识）
+3. **已加载**（文件 + 行数/起止行）
+4. **未加载**（后续备选）
+5. **第一动作**（本轮首要执行步骤）
+6. **Token 预算估算**（本轮预计消耗）
+
+缺失任一项由 `specforge doctor --check-disclosure` 报告。骨架参考 `.specforge/commands/workflow/_shared/routing-preamble.md`。
+
+### 7.8 LESSONS grep 义务
+
+`implementation-build` 在**每任务开始前**必须 grep `specforge/context/lessons.md`（仅匹配 `status: active` 条目）。命中时 AI 代理必须二选一：
+
+- 书面声明「本次与该 lesson 的差异是 X」
+- 声明「仍适用，所以不采取该路径」
+
+未声明差异视为违反 P9，触发 `E010_repeatedFailurePattern`。
+
 ## 8. 常见陷阱
 
 | 陷阱 | 说明 |
@@ -226,6 +268,8 @@ spec-kit 风格的 before/after 钩子。键名 `before_<phase>` / `after_<phase
 - 模板机器源：`templates/.specforge/config.yaml`（全文注释型）
 - 仓库运营与发布：`.agents/skills/github-ops/SKILL.md`
 - 文档同步工作流：`.agents/skills/docs-sync/SKILL.md`
+- 方法论参考：[flow-kit](https://github.com/rihebty/flow-kit) by rihebty
+- 项目级知识：`specforge/context/context.md` / `architecture.md` / `lessons.md`
 
 ## 语言与本地化
 

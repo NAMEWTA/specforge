@@ -8,6 +8,44 @@
 
 ## [Unreleased]
 
+### Added
+
+- 三层项目级文档体系：`specforge/context/context.md`（rules）/ `architecture.md`（structure）/ `lessons.md`（LESSONS L-NNN）
+- DESIGN 模板 § 9 架构沉淀建议章节
+- `evolution-retrospect` 架构沉淀同步 Step（§ 9 批量 promote）
+- `project-inventory` tool-command（Brownfield 入场扫描 + AI 文档交互）
+- `codebase-health` tool-command（探针巡检 + 禁动清单 upsert）
+- `context-reset-protocol` skill（清窗/重启协议 + PROGRESS 模板）
+- `design-explore` Step 1.5 既有架构对齐（Brownfield 分支）
+- `design-explore` Step 3.5 v0 草稿门禁
+- `implementation-build` 提交前边界对账（`enforceBoundary` + E009）
+- `implementation-build` LESSONS grep + 声明差异步骤
+- LESSONS 提名四条件过滤 + `L-NNN` 格式（`lessons-service`）
+- `validateV0Draft` 校验函数（5 类违例）
+- `checkL3LoadBudget` / `checkRoutingStatement` 接入 `doctor --check-disclosure`
+- `loadDisclosureConfig` 向后兼容加载（缺配置回退默认值）
+- 路由声明六要素 preamble（8 个 workflow command）
+- Token 成本预算章节（README.md / README-ZH.md）
+
+### Changed
+
+- Constitution 升版 1.0.0 → 1.1.0（新增 P9 反重复与验证前置）
+- `doctor --check-compat` 新增 P9 引用校验
+- TASKS 模板追加 `read_files` / `write_files` 字段
+
+### Docs
+
+- README Heritage 表格追加 flow-kit (rihebty) 行
+- README Acknowledgements 追加 flow-kit 条目
+- README 导语新增「吸收方法论，而非复制实现」声明
+- AGENTS.md 新增 § 2.5 P9 / § 2.6 三层文档 / § 7.6-7.8 L3 预算+路由+LESSONS grep
+
+### Constitution
+
+- P9 — 反重复与验证前置（antiRepetitionAndEvidence）
+- E009_scopeBoundaryViolation 错误码
+- E010_repeatedFailurePattern 错误码
+
 ### 计划中
 
 - 完善产物模板（PROPOSAL.md / DESIGN.md / TASKS.md / CHECKLIST.md / RETROSPECTIVE.md）的默认章节与 `{{variableName}}` 占位符契约

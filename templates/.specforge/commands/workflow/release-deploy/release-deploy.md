@@ -45,6 +45,21 @@ git status --porcelain 2>/dev/null | head -20
 echo "DIRTY: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 -->
 
+<!-- route-statement
+路由：release-deploy
+Change-ID：{{changeId}}
+已加载：
+  - release-deploy.md (本文件)
+  - QUALITY-REPORT.md (质量门禁结果)
+未加载（后续按需）：
+  - references/version-management-guide.md（预算 40 行）
+  - references/changelog-voice-guide.md（预算 30 行）
+  - references/pr-body-template.md（预算 25 行）
+  - references/archive-patterns.md（预算 20 行）
+第一动作：检查质量门禁状态，验证发布就绪条件
+Token 预算估算：约 4500 tokens
+-->
+
 # 发布、部署与归档
 
 ## Iron Law

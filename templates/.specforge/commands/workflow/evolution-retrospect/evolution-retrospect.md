@@ -22,6 +22,21 @@ specforge doctor --check-deps --quiet
 specforge status --phase=all --metrics --quiet
 -->
 
+<!-- route-statement
+路由：evolution-retrospect
+Change-ID：{{changeId}}
+已加载：
+  - evolution-retrospect.md (本文件)
+  - specforge/changes/<ChangeName>/ (变更产物目录)
+未加载（后续按需）：
+  - references/retrospective-patterns.md（预算 40 行）
+  - references/skill-tdd-guide.md（预算 35 行）
+  - references/tuning-playbook.md（预算 30 行）
+  - references/excuse-table.md（预算 20 行）
+第一动作：评估复盘范围，收集流程数据与指标
+Token 预算估算：约 4000 tokens
+-->
+
 # 复盘、沉淀、归档
 
 ## Iron Law
@@ -128,11 +143,116 @@ find specforge/changes/<ChangeName>/ -name "*.md" | wc -l  # 产物数
 
 在 `specforge/context/learnings.md` 中追加经验教训。
 
+#### LESSONS 提名四条件过滤
+
+从本 change 的失败清单中抽取候选时，每条候选必须**同时满足**以下四个条件才能被提名为 L-NNN 条目：
+
+| # | 条件 | 判定标准 | 反例（不满足） |
+|---|------|---------|--------------|
+| 1 | 调试时间 > 30 分钟 | 从首次发现到根因定位耗时超过 30 分钟 | 5 分钟内定位的拼写错误 |
+| 2 | 错因不局限本任务 | 根因可能在其他任务/模块/项目中复现 | 仅因本任务特殊输入触发的边界 case |
+| 3 | 6 个月内可能再遇 | 相关技术栈/模式在项目中持续使用 | 一次性迁移脚本中的问题 |
+| 4 | 非 ADR 能记 | 教训无法用架构决策记录（ADR）表达 | 「选 PostgreSQL 而非 MongoDB」属于 ADR |
+
+**凡不满足任一条件的候选 SHALL 被排除。**
+
+用户对通过过滤的候选逐条选择 `accept` / `skip` / `edit`：
+
+- **accept** — 调用 `getNextLessonId` 生成下一 `L-NNN`（取 `lessons.md` 最大 NNN + 1），追加到 `specforge/context/lessons.md`
+- **skip** — 不写入 lessons
+- **edit** — 用户修改后再写入
+
 ### 2.4 沉淀质量检查
 
 - [ ] 每条 learnings 是否包含"具体场景 + 可执行建议"？
 - [ ] ADR 是否包含"决策理由"和"替代方案分析"？
 - [ ] 术语定义是否避免了循环引用？
+
+---
+
+## Step 2.5: 架构沉淀同步
+
+**目标**: 批量扫描已归档与活跃 change 的 DESIGN § 9 候选条目，经用户逐项确认后 promote 到项目级文档（`context.md` / `architecture.md`）。
+
+> 本 Step 是 DESIGN § 9「架构沉淀建议」从 change 层向项目层回流的唯一通道。跳过此步意味着跨 change 的架构知识将永久丢失。
+
+### 2.5.1 扫描候选
+
+调用 `scanSection9` 扫描以下路径的 DESIGN.md § 9 章节：
+
+- `specforge/archive/**/DESIGN.md`
+- `specforge/changes/**/DESIGN.md`
+
+扫描结果按三类分流：
+
+| 分类 | 含义 | 处理 |
+|------|------|------|
+| `candidates` | 含有效 § 9 候选条目且尚未 promoted | 进入交互审查 |
+| `legacyChanges` | DESIGN 缺失 § 9 章节（历史 change） | 记入 `.evolve-state.yaml#legacy_changes`，跳过不阻塞 |
+| `skippedAlreadyPromoted` | 已在 `.evolve-state.yaml#promoted_changes` 中记录 | 静默跳过 |
+
+### 2.5.2 交互审查
+
+对每个候选条目，向用户展示四元组并等待选择：
+
+```
+候选 [1/M]:
+  changeId:  <change 标识>
+  category:  <new-abstraction | project-decision | cross-module-contract | dependency-change | forbidden-list-change>
+  item:      <候选条目文本>
+  targetDoc: <context.md | architecture.md>
+
+选择: accept | skip | edit
+```
+
+交互规则：
+- **accept** — 条目原样写入目标文件
+- **skip** — 条目不写入任何项目级文档，不记录为 promoted
+- **edit** — 用户修改条目文本后再写入（修改后版本作为最终 promote 内容）
+
+**STOP** - 每条候选等待用户明确选择后再处理下一条。不要批量处理。
+
+### 2.5.3 执行 Promote
+
+调用 `promoteCandidates` 将用户 accept（含 edit 后版本）的条目按 `targetDoc` 分组 patch：
+
+- `targetDoc: context.md` → 追加到 `specforge/context/context.md` 对应段落
+- `targetDoc: architecture.md` → 追加到 `specforge/context/architecture.md` 对应段落
+
+Patch 语义为**追加**（append），不覆盖既有内容。
+
+### 2.5.4 状态更新
+
+更新 `specforge/context/.evolve-state.yaml`：
+
+```yaml
+promoted_changes:
+  - changeId: <change-id>
+    promotedAt: '<ISO 时间戳>'
+    items: [<已 accept 的条目标识列表>]
+legacy_changes:
+  - <缺 § 9 的历史 change-id>
+```
+
+### 2.5.5 摘要输出
+
+Step 完成后向 stdout 输出一行摘要：
+
+```
+已扫描 N / 候选 M / 已合入 P
+```
+
+其中：
+- **N** = 扫描的 DESIGN.md 文件总数（含 legacy）
+- **M** = 有效候选条目数（进入交互审查的条目）
+- **P** = 用户 accept（含 edit）的条目数
+
+### 2.5.6 质量检查
+
+- [ ] legacy change 是否全部记入 `.evolve-state.yaml` 且未阻塞流程？
+- [ ] 用户 skip 的条目是否确认未写入 `context.md` / `architecture.md`？
+- [ ] `.evolve-state.yaml` 的 `schemaVersion` 是否为 `1`？
+- [ ] 摘要中 P ≤ M ≤ N 是否成立？
 
 ---
 

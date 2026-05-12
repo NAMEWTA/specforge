@@ -21,6 +21,79 @@ import type { LifecycleType } from '../core/lifecycle-types.js';
 import { ensureDirectory, writeFile, fileExists, readFile } from '../utils/fs.js';
 import { joinPath } from '../utils/path.js';
 import { renderTemplate } from '../utils/template-renderer.js';
+import { logger } from '../utils/logger.js';
+
+/**
+ * 三份 context 模板文件名（用于 upsert 落盘）
+ */
+const CONTEXT_TEMPLATE_FILES = ['context.md', 'architecture.md', 'lessons.md'] as const;
+
+/**
+ * upsertUserAsset 的返回值类型：三分支语义
+ */
+export type UpsertResult = 'created' | 'skipped' | 'upgraded-gitkeep';
+
+/**
+ * upsertUserAsset 的可选配置
+ */
+export interface UpsertUserAssetOptions {
+  /** 预留：未来可扩展 force 覆盖等选项 */
+  force?: boolean;
+}
+
+/**
+ * 用户资产文件的 upsert 操作，实现三分支语义：
+ * 1. created：目标文件不存在 → 渲染模板写入 → 返回 'created'
+ * 2. skipped：目标文件已存在且内容非空且文件名非 .gitkeep → 返回 'skipped'（不修改）
+ * 3. upgraded-gitkeep：目标文件存在但为零字节或文件名为 .gitkeep → 渲染模板写入 → 返回 'upgraded-gitkeep'
+ */
+export async function upsertUserAsset(
+  targetPath: string,
+  templatePath: string,
+  vars?: Record<string, string>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  opts?: UpsertUserAssetOptions,
+): Promise<UpsertResult> {
+  const targetExists = await fileExists(targetPath);
+
+  if (!targetExists) {
+    // 分支 1：目标文件不存在，从模板创建
+    const rendered = await renderFromTemplate(templatePath, vars);
+    await writeFile(targetPath, rendered);
+    return 'created';
+  }
+
+  // 目标文件已存在，判断是否为 .gitkeep 或零字节
+  const fileName = path.basename(targetPath);
+  const stat = await fsExtra.stat(targetPath);
+  const isZeroByte = stat.size === 0;
+  const isGitkeep = fileName === '.gitkeep';
+
+  if (isZeroByte || isGitkeep) {
+    // 分支 3：零字节文件或 .gitkeep → 升级为模板内容
+    const rendered = await renderFromTemplate(templatePath, vars);
+    await writeFile(targetPath, rendered);
+    return 'upgraded-gitkeep';
+  }
+
+  // 分支 2：文件已存在且内容非空 → 跳过
+  return 'skipped';
+}
+
+/**
+ * 从模板文件读取内容并渲染变量；若 vars 未提供则保留占位符原样
+ */
+async function renderFromTemplate(
+  templatePath: string,
+  vars?: Record<string, string>,
+): Promise<string> {
+  const templateContent = await readFile(templatePath);
+  if (!vars) {
+    // 不传 vars 时，占位符保持原样
+    return templateContent;
+  }
+  return renderTemplate(templateContent, vars);
+}
 
 /**
  * 阶段 → workflow command 目录名 的映射（与 templates/.specforge/commands/workflow/ 子目录一致）
@@ -51,14 +124,16 @@ function resolvePackageTemplatesDir(): string {
  * - 如果是文件，且后缀为 .yaml/.md/.json，进行变量渲染
  * - 否则原样复制
  * - 可选 skipDirs：跳过指定的子目录（按相对模板根的相对路径匹配）
+ * - 可选 skipFiles：跳过指定的文件（按相对模板根的相对路径匹配）
  */
 async function copyDirWithRendering(
   src: string,
   dest: string,
   variables: Record<string, string>,
-  options?: { skipDirs?: Set<string>; relativeBase?: string },
+  options?: { skipDirs?: Set<string>; skipFiles?: Set<string>; relativeBase?: string },
 ): Promise<void> {
   const skipDirs = options?.skipDirs;
+  const skipFiles = options?.skipFiles;
   const relativeBase = options?.relativeBase ?? '';
 
   await ensureDirectory(dest);
@@ -71,12 +146,17 @@ async function copyDirWithRendering(
       continue;
     }
 
+    if (entry.isFile() && skipFiles?.has(entryRel)) {
+      continue;
+    }
+
     const srcPath = joinPath(src, entry.name);
     const destPath = joinPath(dest, entry.name);
 
     if (entry.isDirectory()) {
       await copyDirWithRendering(srcPath, destPath, variables, {
         skipDirs,
+        skipFiles,
         relativeBase: entryRel,
       });
     } else if (entry.isFile()) {
@@ -179,6 +259,7 @@ export class ScaffoldService {
 
   /**
    * 初始化用户资产：从 templates/specforge/ 复制到 specforge/
+   * 三份 context 模板文件通过 upsertUserAsset 落盘（三分支语义：created / skipped / upgraded-gitkeep）
    */
   private async initializeUserAssets(
     projectRoot: string,
@@ -189,11 +270,49 @@ export class ScaffoldService {
     const targetUserDir = joinPath(projectRoot, SPECFORGE_USER_DIR);
 
     if (await fileExists(sourceUserDir)) {
-      // 模板存在：完整复制并渲染
-      await copyDirWithRendering(sourceUserDir, targetUserDir, variables);
+      // 跳过 context/ 下的三份模板文件，由 upsertUserAsset 单独处理
+      const skipFiles = new Set<string>(
+        CONTEXT_TEMPLATE_FILES.map((f) => `${CONTEXT_DIR}/${f}`),
+      );
+      await copyDirWithRendering(sourceUserDir, targetUserDir, variables, { skipFiles });
     } else {
       // 模板不存在：创建最小骨架
       await this.createUserAssetsFallback(targetUserDir);
+    }
+
+    // 通过 upsertUserAsset 落盘三份 context 模板（三分支语义）
+    await this.upsertContextFiles(projectRoot, variables);
+  }
+
+  /**
+   * 使用 upsertUserAsset 落盘三份 context 模板文件
+   * 日志输出基于 upsert 结果：created / skipped / upgraded-gitkeep
+   */
+  private async upsertContextFiles(
+    projectRoot: string,
+    variables: Record<string, string>,
+  ): Promise<void> {
+    const templatesDir = resolvePackageTemplatesDir();
+    const templateContextDir = joinPath(templatesDir, SPECFORGE_USER_DIR, CONTEXT_DIR);
+    const targetContextDir = joinPath(projectRoot, SPECFORGE_USER_DIR, CONTEXT_DIR);
+
+    for (const fileName of CONTEXT_TEMPLATE_FILES) {
+      const templatePath = joinPath(templateContextDir, fileName);
+      const targetPath = joinPath(targetContextDir, fileName);
+
+      const result = await upsertUserAsset(targetPath, templatePath, { projectName: variables.projectName });
+
+      switch (result) {
+        case 'created':
+          logger.success(`创建 context 文件：${CONTEXT_DIR}/${fileName}`);
+          break;
+        case 'skipped':
+          logger.debug(`跳过已存在的 context 文件：${CONTEXT_DIR}/${fileName}`);
+          break;
+        case 'upgraded-gitkeep':
+          logger.success(`升级 .gitkeep 为 context 模板：${CONTEXT_DIR}/${fileName}`);
+          break;
+      }
     }
   }
 

@@ -23,6 +23,20 @@ specforge doctor --check-deps --quiet
 # 检查 scripts/start-server.sh 是否存在
 -->
 
+<!-- route-statement
+路由：requirements-clarify
+Change-ID：{{changeId}}
+已加载：
+  - requirements-clarify.md (本文件)
+  - specforge/project.md (项目上下文)
+未加载（后续按需）：
+  - references/multi-perspective-patterns.md（预算 40 行）
+  - references/brainstorming-visual-companion.md（预算 35 行）
+  - references/spec-document-reviewer-prompt.md（预算 30 行）
+第一动作：读取项目上下文与已有信息，开始意图挖掘
+Token 预算估算：约 4500 tokens
+-->
+
 # 需求澄清与方案探索
 
 ## Iron Laws

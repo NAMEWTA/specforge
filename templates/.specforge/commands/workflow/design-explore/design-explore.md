@@ -17,6 +17,38 @@ specforge status --phase=design --check-requires
 
 # 环境检测（检查依赖工具是否可用）
 specforge doctor --check-deps --quiet
+
+# Brownfield 上下文判定（detectBrownfield 复用）
+# 检查 specforge/context/inventory.md 是否存在——存在则表明已执行过 project-inventory 扫描，项目为 brownfield
+# 判定结果决定 Step 1.5 是否为必做步骤
+if [ -f "specforge/context/inventory.md" ]; then
+  echo "🟡 [brownfield] specforge/context/inventory.md 已存在——Step 1.5 既有架构对齐为必做步骤"
+else
+  # 回退检测：检查主流清单文件是否存在（与 detectBrownfield 判定逻辑一致）
+  MANIFEST_FOUND=false
+  for f in package.json pom.xml Cargo.toml go.mod pyproject.toml; do
+    if [ -f "$f" ]; then MANIFEST_FOUND=true; break; fi
+  done
+  if [ "$MANIFEST_FOUND" = true ] && [ "$(find src -type f \( -name '*.ts' -o -name '*.js' -o -name '*.py' -o -name '*.go' -o -name '*.java' -o -name '*.rs' \) 2>/dev/null | wc -l)" -gt 5 ]; then
+    echo "🔴 [brownfield] 检测到 brownfield 项目但尚未运行 project-inventory——建议先执行 specforge project-inventory，Step 1.5 为必做步骤"
+  else
+    echo "🟢 [greenfield] 未检测到 brownfield 信号——Step 1.5 可跳过（须记录跳过原因）"
+  fi
+fi
+-->
+
+<!-- route-statement
+路由：design-explore
+Change-ID：{{changeId}}
+已加载：
+  - design-explore.md (本文件)
+  - PROPOSAL.md (已批准方案)
+未加载（后续按需）：
+  - references/multi-perspective-review.md（预算 45 行）
+  - references/decision-brief-format.md（预算 20 行）
+  - references/v0-draft-template.md（预算 25 行）
+第一动作：加载已批准方案，评估设计复杂度与审查深度
+Token 预算估算：约 5000 tokens
 -->
 
 # 架构与技术设计
@@ -61,27 +93,7 @@ specforge doctor --check-deps --quiet
 - **标准模式**：完整三视角审查（工程/设计/DevEx）+ 宪法检查
 - **重量模式**：标准模式 + 额外性能/安全/可扩展性审查
 
-使用决策简报格式呈现选择：
-
-```
-D1 — 选择设计模式
-项目/分支: <当前分支>
-ELI10: 设计模式决定了审查的严格程度。轻量模式适合小改动，标准模式适合大多数功能，重量模式适合复杂系统。选错会导致要么过度设计要么遗漏关键问题。
-利害分析：选错模式会导致设计质量不匹配复杂度，要么浪费时间要么遗漏风险。
-推荐：标准模式 因为 它在质量和效率之间取得平衡
-完整性：轻量=5/10（覆盖核心但省略边缘）, 标准=8/10（完整审查）, 重量=10/10（全覆盖）
-优缺点：
-A) 轻量模式
-  ✅ 快速完成，适合简单改动
-  ❌ 可能遗漏边界情况和 DevEx 问题
-B) 标准模式 (recommended)
-  ✅ 完整三视角审查，覆盖大多数风险
-  ❌ 比轻量模式多花时间
-C) 重量模式
-  ✅ 最全面，包含性能/安全审查
-  ❌ 耗时长，可能过度设计简单功能
-总结：标准模式适合大多数场景，在质量和效率间取得平衡
-```
+使用决策简报格式（参见 `references/decision-brief-format.md`）呈现三选项，推荐标准模式。
 
 **STOP** - 等待用户确认设计模式后再继续。不要批量处理此决策。
 
@@ -104,29 +116,87 @@ C) 重量模式
 - PROPOSAL.md 存在且包含已批准方案
 - 方案中的技术决策和约束清晰可执行
 - 用户故事包含独立的验收场景（Given-When-Then）
-- 如果方案描述不足以支撑设计，**使用决策简报格式询问用户**：
-
-```
-D2 — 设计输入信息不足
-项目/分支: <当前分支>
-ELI10: 当前方案缺少关键信息（如用户故事/接口要求/约束条件），无法进行完整设计。需要决定是补充信息、基于假设继续、还是返回需求阶段。
-利害分析：基于不足信息设计会导致返工或遗漏关键需求。
-推荐：补充信息 因为 可以避免后续返工
-完整性：补充=10/10（完整信息）, 假设=6/10（有猜测成分）, 返回=10/10（但耗时）
-优缺点：
-A) 补充信息 (recommended)
-  ✅ 确保设计基于完整准确的需求
-  ❌ 需要额外时间沟通和确认
-B) 基于假设继续
-  ✅ 快速推进，不阻塞进度
-  ❌ 假设可能错误，导致设计返工
-C) 返回 requirements-clarify
-  ✅ 从根本上解决问题
-  ❌ 流程回退，延迟设计完成
-总结：补充信息是风险最低的选择，确保设计质量
-```
+- 如果方案描述不足以支撑设计，**使用决策简报格式询问用户**（补充信息 / 基于假设继续 / 返回 requirements-clarify 三选一）。
 
 **STOP** - 等待用户回应后再继续。
+
+---
+
+## Step 1.5: 既有架构对齐（Brownfield 观察报告）
+
+**目标**：在进入多视角审查前，强制 AI 代理输出一份「既有架构观察报告」，确保新设计不与项目现有风格/约定冲突。
+
+### 1.5.0 Brownfield / Greenfield 分支判定
+
+通过 `detectBrownfield(rootDir)`（来自 `src/services/inventory-service.ts`）判定当前项目类型。
+判定依据两条件 AND：① 根目录至少存在一份主流清单文件（`package.json` / `pom.xml` / `Cargo.toml` / `go.mod` / `pyproject.toml`）；② `src/**` 下匹配源文件数 > 5。
+
+**快捷判定**：若 `specforge/context/inventory.md` 已存在（表明已执行过 `specforge project-inventory` 扫描），可直接判定为 brownfield，无需重复探测。
+
+分支行为：
+
+- **Brownfield**（`detectBrownfield` 返回 `true` 或 `inventory.md` 已存在）→ **必须执行** Step 1.5，不得跳过
+- **Greenfield**（`detectBrownfield` 返回 `false` 且 `inventory.md` 不存在）→ **可跳过** Step 1.5，但须在流程日志记录跳过原因
+
+> ⚠️ **跳过警告**：若 AI 代理在 brownfield 上下文中尝试跳过 Step 1.5，preamble 必须输出标红提示：
+> `🔴 [E-SKIP-1.5] 检测到 brownfield 项目但 Step 1.5 被跳过——既有架构对齐是 brownfield 必做步骤，请立即补充观察报告。`
+
+### 1.5.1 观察维度
+
+**前端项**（若项目含前端代码）：
+
+| 维度 | 观察要点 |
+|------|---------|
+| 视觉语汇 | 设计系统/组件库名称、布局模式（grid/flex/table） |
+| 主色 | 品牌色 / 功能色 / 中性色色板 |
+| Elevation 层级 | shadow 层级数、z-index 管理策略 |
+| 图标库 | 使用的图标集（lucide/heroicons/自定义 SVG） |
+| 文案调性 | 正式/口语/技术、中英文混排规则 |
+
+**后端项**（若项目含后端代码）：
+
+| 维度 | 观察要点 |
+|------|---------|
+| 命名风格 | camelCase/snake_case/kebab-case、缩写规则 |
+| 分层 | presentation/domain/infra 或其他分层模式 |
+| 复用模式 | 工具函数/基类/mixin/组合式/DI 容器 |
+| 错误处理约定 | 异常类层级/Result 类型/错误码体系 |
+| 日志风格 | 结构化/非结构化、级别使用惯例、上下文字段 |
+
+### 1.5.2 独立消息契约
+
+观察报告 **必须** 作为一条独立 AI 消息输出（不与 Step 1 或 Step 2 的内容合并），格式：
+
+```
+## 既有架构观察报告
+
+### 前端观察（若适用）
+- 视觉语汇：...
+- 主色：...
+- Elevation：...
+- 图标库：...
+- 文案调性：...
+
+### 后端观察（若适用）
+- 命名风格：...
+- 分层：...
+- 复用模式：...
+- 错误处理：...
+- 日志风格：...
+
+### 对本次设计的约束建议
+- [基于观察得出的 1-3 条设计约束]
+
+请确认观察是否准确，或提供修正。
+```
+
+### 1.5.3 阻断行为
+
+**STOP** — Step 2 被阻断，直到用户对观察报告做出以下任一回应：
+- **confirm**：观察准确，继续进入 Step 2
+- **修正**：用户提供修正内容，AI 更新报告后再次等待确认
+
+未获确认前，禁止推进 Step 2 的多视角审查。
 
 ---
 
@@ -156,26 +226,9 @@ C) 返回 requirements-clarify
 
 ### 2.0a 决策简报格式（审查中发现问題时使用）
 
-当审查发现需要用户决策的问題时，使用以下格式：
+当审查发现需要用户决策的问題时，使用决策简报格式（详见 `references/decision-brief-format.md`）。每个问題单独调用，不要批量。
 
-```
-D<N> — <问題标题>
-项目/分支: <1 句上下文>
-ELI10: <16 岁能懂的白话解释，2-4 句，说明利害>
-利害分析：选错的后果（1 句）
-推荐：<选项> 因为 <1 句理由>
-完整性：A=X/10, B=Y/10（或：注意：选项是类型差异而非覆盖度差异）
-优缺点：
-A) <选项标签> (recommended)
-  ✅ <优点 - 具体可观察，>=40 字符>
-  ❌ <缺点 - 诚实，>=40 字符>
-B) <选项标签>
-  ✅ <优点>
-  ❌ <缺点>
-总结：<1 句权衡综合>
-```
-
-**STOP** - 每个问題单独调用，不要批量。等待用户回应后再继续。
+**STOP** - 等待用户回应后再继续。
 
 ### 2.1 CEO / 战略视角（Strategic Review）
 
@@ -312,110 +365,47 @@ B) <选项标签>
 
 ---
 
+## Step 3.5：v0 草稿门禁
+
+**目标**：在投入详细 DESIGN 之前，以极低成本校准方向。
+
+**要求**：
+- 以**一条独立消息**输出 v0 草稿（不与其他 Step 合并）
+- 正文不超过 500 字（不含标题与列表编号）
+- 必须包含：核心架构假设（1-2 句）/ 3-5 条关键决策（每条 ≤ 40 字）/ 2-3 条主要风险（每条 ≤ 50 字）
+- 末尾提供 `confirm` + `reject` 两选项
+
+**模板参考**：[`references/v0-draft-template.md`](references/v0-draft-template.md)
+
+**门禁规则**：
+- ⛔ v0 草稿未获 `confirm` → **阻断 Step 4**（禁止产出详细 DESIGN）
+- 🔄 用户选择 `reject` → 回退 Step 2（六维度澄清），附用户修正建议作为输入
+- ✅ 用户选择 `confirm` → 进入 Step 4 详细 DESIGN
+
+---
+
 ## Step 4: 生成 DESIGN.md
 
 **目标**：生成完整的架构与技术设计文档。
 
 ### 4.1 必需章节（按顺序）
 
-```markdown
-# DESIGN: <ChangeName>
+DESIGN.md 必须包含以下章节（详细模板参见 `templates/.specforge/templates/DESIGN.md`）：
 
-## Context（背景）
-<!-- 从 PROPOSAL.md 提取：问題陈述、为什么现在做、约束条件 -->
-
-## Goals / Non-Goals
-**Goals:**
-<!-- 设计目标，具体可验证 -->
-
-**Non-Goals:**
-<!-- 明确排除的内容 -->
-
-## User Scenarios & Testing（用户场景）
-
-### User Story 1 - <标题> (Priority: P1)
-
-[描述用户旅程]
-
-**独立测试**: [如何独立测试]
-**验收场景**:
-1. **Given** <初始状态>, **When** <操作>, **Then** <预期结果>
-
-### User Story 2 - <标题> (Priority: P2)
-...
-
-### Edge Cases
-- <边界条件 1>
-- <边界条件 2>
-
-## Architecture Overview（架构总览）
-- 架构风格（分层/六边形/微服务/...）
-- 关键架构决策及其理由
-- 架构图（mermaid 或 ASCII）
-
-## Component / Module Design（组件设计）
-### Module A
-- 职责
-- 对外接口
-- 内部结构
-- 依赖
-
-### Module B
-- ...
-
-## Data Flow（数据流）
-- 读路径：请求 → ... → 响应
-- 写路径：请求 → ... → 持久化
-- 异步流：事件/消息
-
-## Interface Definitions（接口定义）
-### API Endpoints
-| Method | Path | Request | Response | Errors |
-|--------|------|---------|----------|--------|
-
-### Data Structures
-```typescript
-interface XxxRequest { ... }
-interface XxxResponse { ... }
-```
-
-### Events / Messages（如适用）
-
-## Error Handling Strategy（错误处理策略）
-- 错误分类（业务错误/系统错误/校验错误）
-- 错误码规范
-- 降级策略
-- 重试与幂等策略
-
-## Testing Strategy（测试策略）
-- 测试金字塔（单元/集成/E2E 比例）
-- 关键测试场景
-- Mock 策略
-
-## Success Criteria（成功标准）
-- **SC-001**: [可度量指标，如 "用户可在 2 分钟内完成注册"]
-- **SC-002**: [用户满意度指标]
-- **SC-003**: [业务指标]
-
-## Key Decisions & Trade-offs（关键决策记录）
-| 决策 | 方案 | 替代方案 | 理由 |
-|------|------|---------|------|
-
-## Assumptions（假设）
-- [假设 1，如 "用户有稳定的网络连接"]
-- [假设 2，如 "现有认证系统将被复用"]
-- [依赖项，如 "需要访问现有用户 profile API"]
-
-## Files/Directories Involved（涉及文件清单）
-- 新增：`exact/path/to/new-file.ts`
-- 修改：`exact/path/to/existing.ts`
-- 测试：`tests/exact/path/to/test.ts`
-
-## DevEx Assessment（开发者体验评估）
-- API 易用性评分：/10
-- 调试友好度评分：/10
-- 文档完整度评分：/10
-```
+1. Context（背景）
+2. Goals / Non-Goals
+3. User Scenarios & Testing（含 Given-When-Then 验收场景）
+4. Architecture Overview（架构图 + 关键决策）
+5. Component / Module Design
+6. Data Flow（读/写/异步路径）
+7. Interface Definitions（API + Data Structures + Events）
+8. Error Handling Strategy（分类/错误码/降级/重试）
+9. Testing Strategy（金字塔 + Mock 策略）
+10. Success Criteria（可度量指标）
+11. Key Decisions & Trade-offs
+12. Assumptions
+13. Files/Directories Involved
+14. DevEx Assessment
 
 ### 4.2 章节完整性检查
 

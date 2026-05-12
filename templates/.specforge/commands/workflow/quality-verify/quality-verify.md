@@ -19,6 +19,21 @@ specforge status --phase=quality --check-requires
 specforge doctor --check-deps --quiet
 -->
 
+<!-- route-statement
+路由：quality-verify
+Change-ID：{{changeId}}
+已加载：
+  - quality-verify.md (本文件)
+  - TASKS.md (实现范围)
+  - DESIGN.md (接口契约与数据流)
+  - PROPOSAL.md (需求基线)
+未加载（后续按需）：
+  - references/qa-tiers.md（预算 35 行）
+  - references/issue-taxonomy.md（预算 25 行）
+第一动作：加载产物与范围检测，执行 Diff 分析
+Token 预算估算：约 5000 tokens
+-->
+
 # 测试、审查、验证闭环
 
 ## Iron Law — 完成前验证
@@ -98,6 +113,16 @@ specforge doctor --check-deps --quiet
 | "换个说法这条规则就不适用了" | 精神大于字面 |
 
 ---
+
+---
+
+> **清窗协议**：当检测到清窗触发信号（token > 50k / 连续失败 ≥ 2 / 复读迹象 / 用户感觉打转）时，
+> 加载 `context-reset-protocol` skill 并按其流程执行。
+> 详见：`.specforge/skills/workflow-steps/context-reset-protocol/SKILL.md`
+
+> **Constitution P9（反重复与验证前置）**：对同一根因的重试必须书面声明差异；
+> 无法声明差异则停下反问用户。验证前置 Iron Law 适用所有阶段。
+> 详见：`.specforge/constitution.md` P9 章节。
 
 ---
 

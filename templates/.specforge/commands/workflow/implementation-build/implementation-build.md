@@ -21,6 +21,20 @@ specforge status --phase=implementation --check-requires
 specforge doctor --check-deps --quiet
 -->
 
+<!-- route-statement
+路由：implementation-build
+Change-ID：{{changeId}}
+已加载：
+  - implementation-build.md (本文件)
+  - TASKS.md (任务列表与执行计划)
+  - DESIGN.md (技术栈与接口定义)
+未加载（后续按需）：
+  - references/subagent-prompts.md（预算 45 行）
+  - references/extension-hooks-guide.md（预算 30 行）
+第一动作：执行预检查——扩展钩子、清单状态、上下文加载
+Token 预算估算：约 5500 tokens
+-->
+
 # 子代理驱动实现工作流
 
 ## Iron Laws
@@ -154,6 +168,14 @@ Wait for the result of the hook command before proceeding.
 ## Step 3: 按依赖顺序执行任务
 
 **目标**: 按 TASKS.md 中的依赖关系顺序执行任务，对每个任务执行完整的实现→审查→修复循环
+
+> **清窗协议**：当检测到清窗触发信号（token > 50k / 连续失败 ≥ 2 / 复读迹象 / 用户感觉打转）时，
+> 加载 `context-reset-protocol` skill 并按其流程执行。
+> 详见：`.specforge/skills/workflow-steps/context-reset-protocol/SKILL.md`
+
+> **Constitution P9（反重复与验证前置）**：对同一根因的重试必须书面声明差异；
+> 无法声明差异则停下反问用户。验证前置 Iron Law 适用所有阶段。
+> 详见：`.specforge/constitution.md` P9 章节。
 
 ### 3.1 模型选择策略
 
@@ -328,6 +350,75 @@ Wait for the result of the hook command before proceeding.
 - 派发修复子代理并提供具体指令
 - 不要尝试手动修复（上下文污染）
 
+### 3.5 提交前边界对账（Pre-commit Boundary Check）
+
+**目标**: 在每个任务提交前，对比 `git diff` 实际改动与任务声明的 `write_files` 边界，防止越界修改。
+
+**前置条件**: 任务块含 `read_files` / `write_files` 字段（由 `planning-breakdown` 阶段生成）。
+
+#### 3.5.1 对账流程
+
+```
+任务实现完毕、审查通过、准备提交
+  │
+  ├── ① 获取变更文件列表
+  │     git diff --name-only HEAD
+  │
+  ├── ② 调用边界校验
+  │     enforceBoundary(taskDef, gitDiff)
+  │     → 返回 BoundaryCheckResult { ok, violatingFiles, missingCoverage }
+  │
+  ├── ③ 判定结果
+  │     ├── ok === true → 正常提交，进入下一任务
+  │     └── ok === false → 触发 E009_scopeBoundaryViolation
+  │
+  └── ④ 越界处理（二选一，禁止沉默继续）
+        ├── (a) 回滚越界改动
+        │     - git checkout -- <violatingFiles>
+        │     - 重新审查剩余改动是否仍满足任务验收
+        │
+        └── (b) 扩边界（需用户明确确认）
+              - 向用户展示越界文件清单与扩边界理由
+              - 获得用户 confirm 后：
+                1. 更新 TASKS.md 中该任务块的 write_files 字段
+                2. 在 CHANGELOGS 记录扩边界原因（格式：`boundary-expand: T-<id> 新增 <file> 原因 <reason>`）
+              - 用户 reject → 回退到 (a) 回滚
+```
+
+#### 3.5.2 向后兼容（历史任务缺失边界字段）
+
+WHERE 历史 TASKS.md 任务块缺失 `read_files` / `write_files` 字段：
+- **跳过边界对账**，不将缺字段误判为越界
+- **给出一次性升级提示**：
+
+```text
+⚠️ 任务 T-<id> 缺少 read_files / write_files 边界声明，已跳过对账。
+   建议：在 TASKS.md 中为该任务补充边界字段以启用提交前对账保护。
+   参考：specforge planning-breakdown 生成的任务模板已包含这两个字段。
+```
+
+#### 3.5.3 错误码引用
+
+越界触发错误码 **E009_scopeBoundaryViolation**（定义见 `.specforge/config.yaml#errors`）：
+- **signals**: `git diff --name-only` 结果包含 `write_files` 未声明文件
+- **diagnosis**: 检查 TASKS.md 中该任务的 `write_files` 是否完整；确认越界文件是否属于当前任务本应触碰的范围
+- **fix**: 回滚越界改动；或显式扩 `write_files` 并获用户确认
+
+### 3.6 LESSONS 命中检查（每任务开始前）
+
+**目标**：防止 AI 代理重复踩入已记录的失败路径。
+
+**流程**：
+1. 每个任务开始前，运行 `grepLessons(taskContext)` 对 `specforge/context/lessons.md` 中 `status === 'active'` 的条目做关键词匹配
+2. 若命中 ≥ 1 条 LESSONS：
+   - AI 代理必须在二选一中明确声明：
+     a. **仍适用**：「本任务与 L-NNN 描述的场景一致，我将遵循其推荐做法」
+     b. **书面声明差异**：「本次与 L-NNN 的差异是 X，因此不采用其推荐做法」
+   - 未做任何声明即继续实施 → 违反 Constitution P9 → 触发 **E010_repeatedFailurePattern**
+3. 若未命中 → 正常继续
+
+**P9 关联**：本步骤是 Constitution P9（反重复与验证前置）在 LESSONS 维度的落地执行。
+
 ---
 
 ## Step 4: 阶段收尾检查
@@ -384,6 +475,8 @@ Wait for the result of the hook command before proceeding.
 - **E006_checklistIncomplete**: 关键清单未完成 → 询问用户是否继续，或补充完成清单
 - **E007_specReviewFailed**: 规格审查未通过就进入质量审查 → 回退到规格审查修复循环
 - **E008_subagentBlocked**: 子代理阻塞未正确处理 → 根据阻塞原因提供上下文/拆分任务/升级模型/上报用户
+- **E009_scopeBoundaryViolation**: 提交前对账发现越界文件 → 回滚越界改动，或扩 write_files 并获用户确认（详见 § 3.5）
+- **E010_repeatedFailurePattern**: LESSONS 命中但未书面声明差异或「仍适用」→ 违反 P9，停止实施并要求 AI 代理补充声明（详见 § 3.6）
 
 ---
 

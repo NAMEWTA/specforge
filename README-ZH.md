@@ -12,7 +12,7 @@
 
 ## 设计血脉：站在五个开源项目的肩膀上
 
-SpecForge 并不重新发明规格驱动开发，而是**内化并融合**开源生态中最经得起实战检验的模式，把它们熔铸成一套连贯的工具链：
+SpecForge 并不重新发明规格驱动开发，而是**内化并融合**开源生态中最经得起实战检验的模式，把它们熔铸成一套连贯的工具链。SpecForge **吸收方法论，而非复制实现**——下表列出的每个项目，我们只取其设计思想与工作流模式：
 
 | 借鉴项目 | SpecForge 吸收的设计 |
 |---|---|
@@ -21,6 +21,7 @@ SpecForge 并不重新发明规格驱动开发，而是**内化并融合**开源
 | [**superpowers**（obra）](https://github.com/obra/superpowers) | Iron Laws 硬门禁、技能链式调用、子代理驱动实现、反规避语言、压力测试纪律 |
 | [**claude-task-master**（eyaltoledano）](https://github.com/eyaltoledano/claude-task-master) | PRD → 任务分解管线、Zod Schema 校验、复杂度分析、结构化响应契约 |
 | [**Anthropic skills**](https://github.com/anthropics/skills) | 三级渐进披露（L1 frontmatter → L2 主体 → L3 `references/`）、skill-creator 方法论、基准驱动的技能编写 |
+| [**flow-kit**（rihebty）](https://github.com/rihebty/flow-kit) | Brownfield 五护栏（入场扫描、既有架构对齐、read/write 边界、提交前对账、既有抽象 grep）、清窗/重启协议与 PROGRESS 产物、三层项目级文档（rules / structure / LESSONS）、L3 加载预算（≤ 150 行）、v0 草稿门禁、LESSONS 提名精化与 L-NNN 格式、Token 成本透明化 |
 
 同时还借鉴了 [spec-kit](https://github.com/github/spec-kit) 的宪法/扩展钩子模式，以及 [grill-me](https://github.com/obra/grill-me) 的多视角提问框架。
 
@@ -258,6 +259,44 @@ tests/               # 单元 + 集成测试
 - 规则：`package.json` 版本必须与 git tag（去掉 `v` 前缀）一致
 - Dependabot 每周扫描 npm 与 GitHub Actions 依赖
 
+## Token 成本预算
+
+> 以下区间基于方法论层面的工作量估计，**非精确度量**；实际消耗受模型、会话长度、代码库规模、探针命中率等因素影响。
+
+### 规模分档
+
+| Change 规模 | 代码行数 | 估算 Token 区间（一次完整生命周期） | 典型场景 |
+|---|---|---|---|
+| 小 change | < 100 行 | 约 20k – 60k tokens | 单点 bugfix / 小功能增补 |
+| 中 change | 100 – 500 行 | 约 80k – 200k tokens | 单模块功能实现 / 重构局部 |
+| 中大 change | 500 – 1500 行 | 约 250k – 600k tokens | 新增 service + 若干命令 |
+| 大 milestone | 1500+ 行 | 600k+ tokens（建议拆分） | 跨维度改造（如本次 flow-kit 集成） |
+
+### 决策指南：何时该走 SpecForge
+
+- ✅ 改动会影响 ≥ 2 个模块的契约
+- ✅ 存在"需要沉淀到项目级知识"的决策或规则
+- ✅ 团队需要审计线（哪个方案被否、为什么）
+- ✅ Brownfield 项目首次引入 AI 协作（需要先 project-inventory）
+- ✅ 需要跨阶段产物衔接（proposal → design → tasks → quality）
+
+### 决策指南：何时不该走 SpecForge
+
+- ❌ 一次性拼写错 / 格式化 / 依赖小版本升级
+- ❌ 只需 ≤ 5 行代码改动的 hotfix
+- ❌ 纯探索性脚本（写完即弃）
+- ❌ 时间压力下对交付质量不敏感的场景（承担 LESSONS 缺失的代价）
+- ❌ 已有成熟 SOP 且无需沉淀新知识的重复性任务
+
+### 省 Token 的六个习惯
+
+1. **先加载 inventory.md / context.md**：避免每次重新介绍项目，让代理直接进入工作状态
+2. **严守 write_files 边界**：越界会让 AI 不断扩大上下文窗口，成本指数增长
+3. **使用 v0 草稿**：500 字的方向校准远便宜于详细 DESIGN 推倒重来
+4. **遵守 L3 加载预算 ≤ 150 行**：超预算就把内容挪到 `references/` 按需引用
+5. **清窗前落 PROGRESS**：避免恢复后重复尝试已排除方案（触发 E010）
+6. **定期跑 codebase-health**：把死代码/未用依赖写进禁动清单，降低 AI 误触概率
+
 ## 文档
 
 - [`AGENTS.md`](AGENTS.md) —— AI 代理协作指南（使用 AI 的贡献者必读）
@@ -273,6 +312,7 @@ SpecForge 站在以下开源项目的肩膀上：
 - [**superpowers**](https://github.com/obra/superpowers) by obra —— Iron Laws、技能链式调用、子代理驱动开发
 - [**claude-task-master**](https://github.com/eyaltoledano/claude-task-master) by eyaltoledano —— PRD → 任务、复杂度分析
 - [**skills**](https://github.com/anthropics/skills) by Anthropic —— 渐进式披露、skill-creator 方法论
+- [**flow-kit**](https://github.com/rihebty/flow-kit) by rihebty —— Brownfield 护栏、清窗协议、三层文档、Token 成本透明化
 
 感谢上述每一个项目的作者，他们的先行工作是本 CLI 能在几周内（而非几个月）成型的根本原因。
 

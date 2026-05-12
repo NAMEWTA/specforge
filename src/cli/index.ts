@@ -277,4 +277,48 @@ program
     },
   );
 
+// specforge project-inventory
+program
+  .command('project-inventory')
+  .description('扫描项目生成 context/inventory.md（brownfield 入场必做）')
+  .option('--json', '结构化输出（JSON），不走交互')
+  .option('--no-interactive', '禁用交互询问（AI 文档采纳默认写 undefined）')
+  .action(async (options?: { json?: boolean; interactive?: boolean }) => {
+    try {
+      const { ProjectInventoryCommand } = await import('../commands/project-inventory.js');
+      const cmd = new ProjectInventoryCommand({
+        json: options?.json,
+        interactive: options?.interactive,
+      });
+      await cmd.execute('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`错误: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// specforge codebase-health
+program
+  .command('codebase-health')
+  .description('运行代码库健康扫描并生成报告')
+  .option('--json', '结构化输出（JSON），不走交互')
+  .option('--probes <list>', '逗号分隔的探针名列表（仅运行指定探针）')
+  .option('--no-interactive', '禁用交互询问')
+  .action(async (options?: { json?: boolean; probes?: string; interactive?: boolean }) => {
+    try {
+      const { CodebaseHealthCommand } = await import('../commands/codebase-health.js');
+      const cmd = new CodebaseHealthCommand({
+        json: options?.json,
+        probes: options?.probes,
+        interactive: options?.interactive,
+      });
+      await cmd.execute('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`错误: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();

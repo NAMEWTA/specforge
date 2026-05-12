@@ -114,3 +114,24 @@ stateDiagram-v2
 - 回归测试集：
 - 验证命令：`pnpm test` / `pnpm check`（语言无关参考，具体命令见 language-adapters）。
 - 性能 / 安全验证：
+
+## § 9 架构沉淀建议（软约束）
+
+<!-- 本节供 `evolution-retrospect` 批量扫描并 promote 到项目级文档（context.md / architecture.md）。 -->
+
+列出本次 change 可被 `evolution-retrospect` promote 到项目级文档的候选条目；
+允许写「本 change 无架构层面沉淀建议」，但**禁止**为达标而凑数。
+
+| 候选类别 | 候选条目 | 目标文件 | 备注 |
+|---|---|---|---|
+| 新增抽象 | 例：XxxService 统一封装 ... | architecture.md | |
+| 项目级技术决策 | 例：选用 zod 做 ...（ADR-NNN） | architecture.md | ADR 编号 |
+| 跨模块契约 | 例：A 与 B 的 xxx 契约 | architecture.md | |
+| 依赖变动 | 例：新增 dep/lib，理由 | context.md（禁动清单） | |
+| 禁动清单变动 | 例：禁止直接 console.log | context.md | |
+
+> **合法留白**：若本次 change 确实无架构层面沉淀建议，可直接写：
+>
+> 「本 change 无架构层面沉淀建议」
+>
+> 此措辞被集成测试识别为合规跳过；其他非空候选条目须至少包含 3 个字符。

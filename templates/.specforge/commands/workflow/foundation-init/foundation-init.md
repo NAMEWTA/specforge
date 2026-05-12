@@ -14,6 +14,18 @@ specforge doctor --check-node
 specforge doctor --check-compat
 -->
 
+<!-- route-statement
+路由：foundation-init
+Change-ID：{{changeId}}
+已加载：
+  - foundation-init.md (本文件)
+未加载（后续按需）：
+  - references/handoffs.md（预算 30 行）
+  - references/phase-mapping.md（预算 25 行）
+第一动作：检查项目是否已初始化，采集项目上下文
+Token 预算估算：约 3000 tokens
+-->
+
 # 项目初始化与宪法基线
 
 ## Iron Law
@@ -42,6 +54,17 @@ specforge doctor --check-compat
 - CI/CD 流程
 - 部署环境与平台
 - 合规或安全要求
+
+### 1.4 Brownfield 探测
+
+> 如果根目录至少存在一份主流清单文件（`package.json` / `pom.xml` / `Cargo.toml` / `go.mod` / `pyproject.toml`）且 `src/**/*.{ts,js,py,go,java,rs}` 匹配文件数 > 5，则判定为 **brownfield**（既有项目）。
+
+**brownfield 场景处理**：
+- 提示用户运行 `specforge project-inventory` 进行入场扫描
+- 入场扫描将生成 `specforge/context/inventory.md`，覆盖技术栈 / 命名约定 / 既有抽象索引 / 禁动清单 / AI 文档 / 目录结构 / 测试框架 7 类信号
+- 后续 `design-explore` 将在 Step 1.5 强制输出既有架构观察报告
+
+**greenfield 场景**：跳过入场扫描，直接进入 Step 2。
 
 ---
 
@@ -165,6 +188,16 @@ createdAt: "<YYYY-MM-DD>"
 - 如有具体功能需求 → 执行 `requirements-clarify` 命令
 - 如需先探索想法 → 在 `specforge/brainstorming/` 中创建头脑风暴文档
 - 如需制定架构决策 → 先完善 `specforge/project.md` 中的技术栈详情
+
+---
+
+## 长会话清窗协议
+
+> **清窗协议**：当检测到清窗触发信号（token > 50k / 连续失败 ≥ 2 / 复读迹象 / 用户感觉打转）时，
+> 加载 `context-reset-protocol` skill 并按其流程执行。
+> 详见：`.specforge/skills/workflow-steps/context-reset-protocol/SKILL.md`
+
+初始化流程可能因项目规模较大而耗时较长，AI 代理应在执行过程中关注上下文健康状态。若触发清窗信号，须按协议落盘 PROGRESS 后再重启会话。
 
 ---
 
