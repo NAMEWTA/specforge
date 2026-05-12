@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+---
+
+## [0.0.7] — 2026-05-12
+
 ### Added
 
 - 三层项目级文档体系：`specforge/context/context.md`（rules）/ `architecture.md`（structure）/ `lessons.md`（LESSONS L-NNN）
@@ -231,7 +235,8 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.6...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.7...HEAD)
+- [0.0.7](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.7)
 - [0.0.6](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.6)
 - [0.0.5](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.5)
 - [0.0.4](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.4)
