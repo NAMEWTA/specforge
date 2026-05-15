@@ -8,14 +8,12 @@
     "AGENTS.md",
     "CHANGELOGS.md"
   ],
-  "last_sync_sha": "d9f5cccb77d26698d05c8e22ceb800c14c945e50",
-  "last_sync_short": "d9f5ccc",
-  "last_sync_commit_subject": "refactor: 重命名 mantine-ui 为 mantine，增强 update 服务的用户资产补全功能",
-  "last_sync_commit_date": "2026-05-12T17:20:31+08:00",
-  "last_sync_run_at": "2026-05-12T09:24:39Z",
-  "previous_sync_sha": "518c110449fa3248fbb899fed7fa48023213e915",
-  "total_syncs": 3,
-  "synced_docs": [
-    "CHANGELOGS.md"
-  ]
+  "last_sync_sha": "268254aee5954257a57cc37003a83b88ada57db1",
+  "last_sync_short": "268254a",
+  "last_sync_commit_subject": "feat: enhance requirements-clarify workflow and documentation with clear goals and non-goals structure",
+  "last_sync_commit_date": "2026-05-15T14:33:23+08:00",
+  "last_sync_run_at": "2026-05-15T07:00:03Z",
+  "previous_sync_sha": "d9f5cccb77d26698d05c8e22ceb800c14c945e50",
+  "total_syncs": 4,
+  "synced_docs": []
 }
