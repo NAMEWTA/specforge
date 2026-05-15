@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+---
+
+## [0.0.9] — 2026-05-15
+
 ### Changed
 
 - `requirements-clarify` workflow command 升级到 `v2.1.0`：强化规格产出门禁，要求在 requirements 阶段显式产出独立标题 `目标（Goals）` 与 `非目标（Non-Goals）`，并在方案模板与自检步骤中加入非目标可审查性检查。
@@ -266,7 +270,9 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.7...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.9...HEAD)
+- [0.0.9](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.9)
+- [0.0.8](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.8)
 - [0.0.7](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.7)
 - [0.0.6](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.6)
 - [0.0.5](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.5)
