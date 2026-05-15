@@ -3,9 +3,10 @@ name: requirements-clarify
 type: workflow-command
 description: >-
   需求澄清与方案探索——高强度访谈（意图挖掘/约束暴露/隐藏假设）、6维度结构化澄清、方案探索（2-3方案+对比矩阵+视觉伴侣）、规格自检与审查。
+  强制产出可审查的「目标（Goals）」与「非目标（Non-Goals）」双标题规格，避免范围蔓延。
   触发场景："澄清需求"、"需求分析"、"方案探索"、"头脑风暴设计"、
   "spec this feature"、"grill me on this"、"pressure-test this"。
-version: "2.0.0"
+version: "2.1.0"
 author: "wta"
 ---
 
@@ -30,11 +31,12 @@ Change-ID：{{changeId}}
   - requirements-clarify.md (本文件)
   - specforge/project.md (项目上下文)
 未加载（后续按需）：
-  - references/multi-perspective-patterns.md（预算 40 行）
+  - references/grill-me-patterns.md（预算 40 行）
   - references/brainstorming-visual-companion.md（预算 35 行）
+  - references/requirements-spec-blueprint.md（预算 45 行）
   - references/spec-document-reviewer-prompt.md（预算 30 行）
-第一动作：读取项目上下文与已有信息，开始意图挖掘
-Token 预算估算：约 4500 tokens
+第一动作：读取项目上下文并先写出 Goals / Non-Goals 草案，再进入澄清提问
+Token 预算估算：约 4800 tokens
 -->
 
 # 需求澄清与方案探索
@@ -150,6 +152,20 @@ Token 预算估算：约 4500 tokens
 - 并发冲突如何处理？
 - 失败模式有哪些？如何恢复？
 
+### 2.7 先落规格骨架（强制）
+
+在结束 Phase 2 前，必须先产出一个最小规格骨架（可后续补细节），至少含以下标题：
+
+- `## 目标（Goals）`
+- `## 非目标（Non-Goals）`
+- `## 用户故事 / 用例`
+- `## 验收标准（Acceptance Criteria）`
+- `## 风险与未知项（Risks & Unknowns）`
+
+**硬性要求**：
+- 非目标必须逐条写明“不做什么 + 为什么本次不做”。
+- 若无法写出非目标，默认视为范围边界不清，继续追问，不得进入方案批准。
+
 ---
 
 ## Phase 3: 方案探索与对比
@@ -169,7 +185,7 @@ Token 预算估算：约 4500 tokens
 - 可逆性：这是一个单向门还是双向门？做错后能多容易地回退？
 - 可持续性：6 个月后维护这个方案的成本如何？
 
-完整 12 视角参考：`references/multi-perspective-patterns.md`
+完整 12 视角参考：`references/grill-me-patterns.md`
 
 ### 3.2 理解用户意图与期望结果
 
@@ -185,6 +201,7 @@ Token 预算估算：约 4500 tokens
 - **适用场景**：此方案最适合什么情况
 - **Trade-off**：主要优缺点（至少各 2 个）
 - **估算**：大致工作量和风险水平
+- **非目标**：该方案刻意不解决的问题（至少 2 条）
 
 ### 3.4 展示对比矩阵
 
@@ -285,35 +302,38 @@ specforge/changes/<YYYY-MM-DD-ChangeName>/
 ```markdown
 # PROPOSAL: <ChangeName>
 
-## Why（动机）
-- 为什么要做这个变更？
-- 解决什么问题？
+## 背景与现状（Context）
+- 当前痛点与触发背景
+- 与现有能力/系统的差距
 
-## What Changes（变更范围）
-- 具体变更内容（新增/修改/删除）
-- 明确不在范围内的内容
-- 影响范围评估
+## 目标（Goals）
+- 本次必须达成的目标（可度量）
+- 建议按 P1/P2/P3 标注优先级
 
-## Approach（已批准方案）
-- 选定的方案描述
-- 关键技术决策
-- 架构概览（高层）
+## 非目标（Non-Goals）
+- 本次明确不做的事项
+- 每条必须说明“为什么现在不做”
 
-## Alternatives Considered（已考虑方案）
+## 用户故事 / 用例
+- 作为 <角色>，我希望 <能力>，以便 <价值>
+- 覆盖主流程与关键反例
+
+## 范围边界（Scope）
+### 范围内（In Scope）
+- ...
+### 范围外（Out of Scope）
+- ...
+### 边界依赖
+- ...
+
+## 验收标准（Acceptance Criteria）
+- 推荐 EARS：WHEN / IF / THEN / SHALL
+- 每条标准必须能映射到可执行验证
+
+## 方案对比与决策（Alternatives Considered）
 | 方案 | 优势 | 劣势 | 决策 |
 |------|------|------|------|
 | ... | ... | ... | 采纳/不采纳，原因 |
-
-## Capabilities（能力列表）
-### P1（必须）
-- [ ] Capability 1: <描述>
-- [ ] Capability 2: <描述>
-
-### P2（应该）
-- [ ] Capability 3: <描述>
-
-### P3（锦上添花）
-- [ ] Capability 4: <描述>
 
 ## Impact（影响评估）
 - 涉及模块/系统
@@ -321,7 +341,24 @@ specforge/changes/<YYYY-MM-DD-ChangeName>/
 - API 变更（向后兼容性）
 - 安全考虑
 - 性能影响
+
+## Risks & Unknowns（风险与未知项）
+| 编号 | 描述 | 影响 | 缓解策略 | 状态 |
+| ---- | ---- | ---- | -------- | ---- |
+| R-1  |      |      |          | 待确认 |
+
+## Open Questions（待确认项，可选）
+| 编号 | 问题 | 默认建议 |
+| ---- | ---- | -------- |
+| OQ-1 |      |          |
+
+## Decision Log（关键决策固化，可选）
+| ID | 决策 | 理由 |
+| -- | ---- | ---- |
+| D-1 |      |      |
 ```
+
+高密度规格蓝图参考：`references/requirements-spec-blueprint.md`
 
 ### 4.6 规格自检（生成 PROPOSAL.md 后必须执行）
 
@@ -332,6 +369,7 @@ specforge/changes/<YYYY-MM-DD-ChangeName>/
 3. **范围检查** — 是否足够聚焦以用于单个实现计划？还是需要进一步拆分？
 4. **模糊性检查** — 有没有需求可以被两种方式理解？选择一种并明确写出来
 5. **YAGNI 检查** — 有没有未请求的功能、过度设计？移除它们
+6. **目标/非目标门禁** — `目标（Goals）` 与 `非目标（Non-Goals）` 是否为独立标题？非目标是否逐条给出“不做理由”？
 
 发现问题直接内联修复，无需重新审查。
 
@@ -372,6 +410,17 @@ specforge/changes/<YYYY-MM-DD-ChangeName>/
 
 ---
 
+## References 导航（按需加载）
+
+| 场景 | 参考文档 | 核心内容 |
+| ---- | -------- | -------- |
+| 需要多视角深挖问题 | `references/grill-me-patterns.md` | 12 视角提问框架与反模式 |
+| 涉及视觉/布局沟通 | `references/brainstorming-visual-companion.md` | 视觉伴侣使用边界与迭代循环 |
+| 需要高密度 requirements 骨架 | `references/requirements-spec-blueprint.md` | Goals/Non-Goals 双标题、OQ、EARS、风险与决策模板 |
+| 用户审查前做规格把关 | `references/spec-document-reviewer-prompt.md` | 规格审查员调度模板 |
+
+---
+
 ## 反模式：不要这样做
 
 - **\u201c这个太简单了，不需要澄清\u201d** — 简单项目恰恰是未经检验假设造成最多浪费的地方。一个待办事项列表、一个单函数工具、一个配置变更——全都需要。设计可以很简短（对于真正简单的项目几句话就够了），但你必须展示出来并获得批准。
@@ -385,6 +434,8 @@ specforge/changes/<YYYY-MM-DD-ChangeName>/
 - **不是教练** — 不要鼓励，不要验证，不要安慰。要追问。
 
 - **不是清单** — 没有强制问题、没有固定数量、没有固定顺序。根据用户刚刚说的话调整。
+
+- **把非目标藏进“范围外”一句话** — 没有独立 `非目标（Non-Goals）` 标题，评审时就无法有效防止范围蔓延。
 
 ---
 

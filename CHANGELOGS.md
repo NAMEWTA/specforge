@@ -8,6 +8,18 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `requirements-clarify` workflow command 升级到 `v2.1.0`：强化规格产出门禁，要求在 requirements 阶段显式产出独立标题 `目标（Goals）` 与 `非目标（Non-Goals）`，并在方案模板与自检步骤中加入非目标可审查性检查。
+- 重写 `requirements-clarify` 的 PROPOSAL 章节建议：从旧的 `Why/What Changes/Capabilities` 导向切换为 `Context + Goals + Non-Goals + EARS 验收标准 + 风险/待确认项` 导向。
+- 对齐框架规则与模板：`templates/.specforge/config.yaml` 的 requirements `requiredSections` 改为分别要求 `目标（Goals）` 与 `非目标（Non-Goals）` 两个独立章节。
+- `templates/.specforge/templates/PROPOSAL.md` 增强：新增可选章节 `待确认项（Open Questions）` 与 `关键决策固化（Decision Log）`，并强化非目标写作约束。
+- 更新下游参考 `planning-breakdown/references/artifact-graph-spec.md`，消除对旧 proposal 章节命名的引用漂移。
+
+### Added
+
+- 新增 `requirements-clarify` 参考文档：`references/requirements-spec-blueprint.md`，沉淀高密度 requirements 结构蓝图（Goals/Non-Goals 双标题、Open Questions、EARS、Impact/Validation、Decision Log）。
+
 ---
 
 ## [0.0.8] — 2026-05-12

@@ -50,15 +50,16 @@ artifacts:
     description: Initial proposal document outlining the change
     template: proposal.md
     instruction: |
-      Create the proposal document that establishes WHY this change is needed.
+      Create the proposal document that establishes the requirements baseline for this change.
       
       Sections:
-      - **Why**: 1-2 sentences on the problem or opportunity
-      - **What Changes**: Bullet list of changes
-      - **Capabilities**: Identify which specs will be created or modified
-      - **Impact**: Affected code, APIs, dependencies
+      - **Context**: 1-2 paragraphs on current pain points and trigger
+      - **Goals**: measurable outcomes this change must achieve
+      - **Non-Goals**: explicit out-of-scope items with rationale
+      - **Acceptance Criteria**: verifiable SHALL statements
+      - **Impact**: affected code, APIs, dependencies
       
-      Keep it concise (1-2 pages). Focus on the "why" not the "how".
+      Keep it concise (1-2 pages). Focus on "what to achieve and what not to do", not implementation detail.
     requires: []
 
   - id: specs

@@ -108,7 +108,8 @@ rules:
     artifacts:
       proposal:
         requiredSections:
-          - "目标与非目标（Non-goals）"
+          - "目标（Goals）"
+          - "非目标（Non-Goals）"
           - "用户故事/用例"
           - "范围边界（in/out）"
           - "验收标准（可度量）"
@@ -260,4 +261,3 @@ handoffs:
         reason: "发布上线后进入复盘沉淀，运维观察与迭代改进在 evolution 阶段统一处理。"
   evolution-retrospect:
     next: []
-

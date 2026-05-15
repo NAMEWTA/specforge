@@ -312,7 +312,7 @@ SpecForge 站在以下开源项目的肩膀上：
 - [**skills**](https://github.com/anthropics/skills) by Anthropic —— 渐进式披露、skill-creator 方法论
 - [**flow-kit**](https://github.com/rihebty/flow-kit) by rihebty —— Brownfield 护栏、清窗协议、三层文档、Token 成本透明化
 
-感谢上述每一个项目的作者，他们的先行工作是本 CLI 能在几周内（而非几个月）成型的根本原因。
+感谢上述每一个项目的作者。
 
 ## License
 
