@@ -45,6 +45,28 @@ jobs:
       - name: Verify bin entry
         run: node scripts/verify-bin.mjs
 
+      # 从 CHANGELOGS.md 抽取本次 tag 对应版本段落，作为 GitHub Release 正文。
+      # 提取规则：从 "## [<version>]" 行开始，到下一个 "## [" 或 EOF 之前结束。
+      # 段落内的 "---" 分隔符会被剔除（GitHub Release 正文里不需要）。
+      - name: Extract release notes from CHANGELOGS.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\["v"\\]" { found=1; print; next }
+            found && /^## \[/ { exit }
+            found && /^---[[:space:]]*$/ { next }
+            found { print }
+          ' CHANGELOGS.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "::warning::CHANGELOGS.md 中未找到 [$VERSION] 段落，回退到自动生成。"
+            echo "See [CHANGELOGS.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOGS.md) for details." > release-notes.md
+          fi
+
+          echo "--- Release notes preview ---"
+          cat release-notes.md
+          echo "-----------------------------"
+
       # npm publish 必须在 GitHub Release 创建之前执行，以确保：
       # 1. 若 GitHub Release 创建失败，已成功的 npm 发布结果保留（npm 发布不可回滚）
       # 2. GitHub Release 步骤失败会导致 job 非零退出并输出错误信息（满足 AC #4）
@@ -60,6 +82,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
+          body_path: release-notes.md
           generate_release_notes: true
           draft: false
           prerelease: false
