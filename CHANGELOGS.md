@@ -10,6 +10,24 @@
 
 ---
 
+## [0.0.11] — 2026-05-17
+
+### Added
+
+- **模板**：`workflow-steps/github-ops` skill 升级到 `v1.1.0`，新增基于 `CHANGELOGS.md` 的 GitHub Release notes 注入完整方案：
+  - 新增 `references/release-notes-injection.md`（236 行）—— awk 抽取 `## [X.Y.Z]` 段落 → `body_path` 注入；含事后回填（`gh release edit --notes-file`）、批量历史版本回填、多语言 CHANGELOG 拼接、PR 流程下的 `.github/release.yml` 分类配置 4 类进阶模式
+  - 新增 `references/version-bump-flow.md`（232 行）—— bump → release commit → tag 指向 release commit SHA → push → 三端验证完整 SOP；含失败回滚 4 类场景（publish 前 / publish 后步骤失败 / npm 已上传但 workflow 报错 / npm 不允许重发同版本号）
+- `workflow-yaml-reference.md` 新增 `Extract release notes from CHANGELOGS.md` 步骤的完整 YAML + 注解，并补充 `body_path` 与 `generate_release_notes: true` 的共存语义说明（人写说明 + 机器追溯索引叠加）
+- `troubleshooting-playbook.md` 新增两类故障案例：#10 「GitHub Release 正文为空 / 仅一行 Full Changelog」、#11 「Extract release notes 步骤抽空」；排查 checklist 从 8 项扩到 10 项
+
+### Changed
+
+- `workflow-steps/github-ops` skill frontmatter 补齐 SpecForge 统一 5 字段（原缺 `type / version / author`），`description` 从 280+ 字符精简到 196 字符以达 L1 ≤200 字契约
+- `workflow-steps/github-ops` SKILL.md 主体瘦身（358 → 282 行），保留导航 + 关键 SOP，大块细节按主题下沉到 references；新增 §5.3「Release notes 不能为空」作为 npm 发布的强约束指针
+- 仓库自身 `.github/workflows/release.yml`：在 `Verify bin entry` 与 `Publish to npm` 之间插入 `Extract release notes from CHANGELOGS.md` 步骤；`Create GitHub Release` 增加 `body_path: release-notes.md`，使每次 release 的 GitHub 页面正文与 CHANGELOG 段落严格一致
+
+---
+
 ## [0.0.10] — 2026-05-17
 
 ### Changed
@@ -290,7 +308,8 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.10...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.11...HEAD)
+- [0.0.11](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.11)
 - [0.0.10](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.10)
 - [0.0.9](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.9)
 - [0.0.8](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.8)
