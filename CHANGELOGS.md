@@ -10,6 +10,19 @@
 
 ---
 
+## [0.0.15] — 2026-05-17
+
+### Fixed
+
+- **模板**：统一 `evolution-retrospect` 系列与 `foundation-init/references/handoffs.md` 中的三层项目级文档引用，与 AGENTS.md § 2.6、`scaffold-service` 与 `update-service` 的实际事实来源对齐——废弃旧引用 `learnings.md` / `glossary.md` / `context/adr/`，改为：
+  - `specforge/context/lessons.md` —— LESSONS 层（L-NNN 条目，由 `evolution-retrospect` Step 2.3 提名追加）
+  - `specforge/context/context.md` —— Rules 层（领域术语 / 禁动清单 / code-style 等增量）
+  - `specforge/context/architecture.md` —— Structure 层（ADR 列表 / 跨模块契约 / 扩展点等增量）
+  - 涉及 5 个模板文件、~14 处引用：`evolution-retrospect.md`（Step 2.1/2.2/2.3 描述 / Step 6.1 产物清单 / 反规避提醒表）、`evolution-retrospect/references/excuse-table.md`（借口表 / 红线列表 / 使用指南示例）、`evolution-retrospect/references/retrospective-patterns.md`（改进项落点映射 / 复盘深度指南）、`foundation-init/references/handoffs.md`（evolution-retrospect 示例产物清单 / 流程图末行）、`templates/specforge/config.yaml`（context 段「领域术语」链接）
+  - 全仓 grep 终审验证：旧引用 0 处遗漏
+
+---
+
 ## [0.0.14] — 2026-05-17
 
 ### Added
