@@ -10,6 +10,17 @@
 
 ---
 
+## [0.0.12] — 2026-05-17
+
+### Added
+
+- **模板**：新增 `ui-ux/pierre-diffs-trees` skill（`type: ui-ux-rule`，~4276 行）—— 为 AI 代理提供使用 [@pierre/diffs](https://diffs.com/docs)（高性能代码差异渲染）与 [@pierre/trees](https://trees.software/docs)（路径优先文件树）构建 IDE / PR / Merge Conflict / 代码审查界面的程序性知识：
+  - SKILL.md 主体覆盖：包结构与子路径入口、核心心智模型（HTML-first + Shadow DOM、路径优先 model）、组件选型决策表、Diffs 关键能力（annotations / accept-reject hunks / merge conflict resolution / 主题）、Trees 关键能力（Git 状态 / 自定义图标 / 命令式状态变更）、Shadow DOM 主题陷阱、性能优化路径（Virtualizer + Worker Pool）、SSR、CodeMirror 6 集成、常见陷阱速查
+  - 9 份按需加载的 references：`diffs-react-api.md` / `diffs-vanilla-api.md` / `trees-react-api.md` / `trees-vanilla-api.md` / `advanced-rendering.md` / `theming-and-shadow-dom.md` / `codemirror-integration.md` / `accept-reject-and-conflicts.md` / `troubleshooting.md`
+  - frontmatter 严格遵守 SpecForge 统一 5 字段（`name` / `type` / `description` / `version` / `author`），`description` 196 字符达 L1 ≤200 字契约
+
+---
+
 ## [0.0.11] — 2026-05-17
 
 ### Added
