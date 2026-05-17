@@ -133,15 +133,15 @@ find specforge/changes/<ChangeName>/ -name "*.md" | wc -l  # 产物数
 
 ### 2.1 术语表更新
 
-在 `specforge/context/glossary.md` 中记录新术语（如有）。
+在 `specforge/context/context.md` 的「领域术语」段落追加新术语（如有）。
 
 ### 2.2 架构决策记录
 
-在 `specforge/context/adr/` 中创建 ADR（如有架构决策）。
+在 `specforge/context/architecture.md` 的「ADR 列表」段落追加 ADR 条目（如有架构决策）。
 
 ### 2.3 经验教训记录
 
-在 `specforge/context/learnings.md` 中追加经验教训。
+在 `specforge/context/lessons.md` 中追加经验教训。
 
 #### LESSONS 提名四条件过滤
 
@@ -352,9 +352,9 @@ C) 保存草稿（稍后完善，change 状态设为 pending-retrospect）
 ### 6.1 产物清单
 
 - `specforge/changes/<ChangeName>/RETROSPECTIVE.md` — 复盘报告
-- `specforge/context/learnings.md` — 追加经验教训
-- `specforge/context/glossary.md` — 术语表（如有更新）
-- `specforge/context/adr/` — 架构决策记录（如有新架构决策）
+- `specforge/context/lessons.md` — 追加经验教训（L-NNN 条目）
+- `specforge/context/context.md` — 术语 / 禁动清单等 Rules 层增量（如有更新）
+- `specforge/context/architecture.md` — ADR 列表 / 跨模块契约等 Structure 层增量（如有新架构决策）
 - 优化后的技能文件（如有）
 - `specforge/changes/<ChangeName>/.specforge.json` — 变更元数据更新（status: completed）
 
@@ -402,7 +402,7 @@ RECOMMENDATION: <建议的下一步>
 |------|------|
 | "复盘太花时间，直接开始下一个任务" | 不复盘的团队会在同一个坑里跌倒两次 |
 | "这次没什么好总结的，很顺利" | 顺利的原因本身就是有价值的经验 |
-| "learnings.md 以后有空再写" | "以后"永远不存在。现在不写，永远不会被写 |
+| "lessons.md 以后有空再写" | "以后"永远不存在。现在不写，永远不会被写 |
 | "技能优化太复杂，先用着再说" | 摩擦损失会在 10 次使用后超过优化成本 |
 
 完整借口分类（时间压力/过度自信/责任转移/技术回避）和红线列表参见 `references/excuse-table.md`。

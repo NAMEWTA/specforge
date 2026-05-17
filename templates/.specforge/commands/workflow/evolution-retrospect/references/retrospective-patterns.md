@@ -78,8 +78,8 @@ echo "Iron Law 触发: $IRON_LAW_COUNT"
 | 技能缺失 | `skills/` 新技能 | 创建 error-handling-review 技能 | MINOR |
 | 规则遗漏 | `constitution.md` | 新增"设计必须包含错误策略" | MAJOR |
 | 错误模式 | `config.yaml` errors | 新增 E015 错误编号 | PATCH |
-| 术语混淆 | `context/glossary.md` | 补充新术语定义 | PATCH |
-| 架构决策 | `context/adr/` | 创建 ADR-005 | MINOR |
+| 术语混淆 | `context/context.md` | 在「领域术语」段落补充新术语定义 | PATCH |
+| 架构决策 | `context/architecture.md` | 在「ADR 列表」段落新增 ADR-005 条目 | MINOR |
 
 ## 复盘报告模板
 
@@ -173,14 +173,14 @@ echo "Iron Law 触发: $IRON_LAW_COUNT"
 **内容**:
 - 关键指标收集（自动化脚本）
 - 记录 1-2 个核心经验教训
-- 更新 learnings.md
+- 更新 lessons.md
 - 跳过技能 TDD 迭代
 
 ### 标准复盘（30-45 分钟）
 **适用**: 中型 change（3-7 天，4-6 阶段）
 **内容**:
 - 完整流程回顾（所有阶段评分）
-- 经验沉淀（learnings + ADR + glossary）
+- 经验沉淀（lessons.md L-NNN + context.md 术语 / 禁动 + architecture.md ADR）
 - 识别可固化模式（1-2 个技能优化）
 - 项目调优（配置更新）
 - 生成结构化报告

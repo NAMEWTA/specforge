@@ -167,9 +167,9 @@
 
 **产物**：
 - `specforge/changes/<ChangeName>/RETROSPECTIVE.md` — 复盘报告
-- `specforge/context/learnings.md` — 追加经验教训
-- `specforge/context/glossary.md` — 术语表（如有更新）
-- `specforge/context/adr/` — 架构决策记录（如有新架构决策）
+- `specforge/context/lessons.md` — 追加经验教训（L-NNN 条目）
+- `specforge/context/context.md` — 术语 / 禁动清单等 Rules 层增量（如有更新）
+- `specforge/context/architecture.md` — ADR 列表 / 跨模块契约等 Structure 层增量（如有新架构决策）
 - 优化后的技能文件（如有）
 - `specforge/changes/<ChangeName>/.specforge.json` — 变更元数据更新（status: completed）
 
@@ -273,6 +273,6 @@ quality-verify
 release-deploy
     ↓ (Git tag, CHANGELOG, OPS-RUNBOOK.md, archive)
 evolution-retrospect
-    ↓ (RETROSPECTIVE.md, learnings.md)
+    ↓ (RETROSPECTIVE.md, lessons.md)
 循环闭合 → 下一次 change
 ```
