@@ -1,6 +1,6 @@
 # 归档模式与最佳实践
 
-> 本指南补充 release-deploy 命令的归档机制（Step 7）
+> 本指南补充 release-deploy 命令的归档机制（Step 1–3 的展开细节）
 
 ## 归档的目的
 
