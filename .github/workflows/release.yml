@@ -77,7 +77,7 @@ jobs:
 
       # 独立步骤：即使此步骤失败，上一步的 npm publish 已完成且不会被回滚
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: success()
         with:
           tag_name: ${{ github.ref_name }}
