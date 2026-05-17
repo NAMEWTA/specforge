@@ -10,6 +10,26 @@
 
 ---
 
+## [0.0.10] — 2026-05-17
+
+### Changed
+
+- `foundation-init` workflow command 升级到 `v1.1.0`：在双目录搭建之外，新增 Step 4 「AI 协作文档同步（AGENTS.md + CLAUDE.md）」，把项目根目录的 AI 协作手册视为初始化产物的一部分；Iron Law 同步收紧——只产出 `specforge/` 双目录而不落地或更新 AGENTS.md / CLAUDE.md 视为残次品。
+- `foundation-init` 后续步骤顺序整理：原 Step 4「宪法初始化」顺延为 Step 5；原 Step 5「Profile 选择」顺延为 Step 6；首轮 Token 预算估算从 ~3000 调整为 ~3500。
+- `foundation-init` brownfield 分支处理增强：当根目录已存在 AGENTS.md / CLAUDE.md 时，由 `project-inventory` 走采纳决策（参见 `tools/project-inventory/references/ai-doc-merge-policy.md`），foundation-init 在 Step 4 仅做差量补齐而非覆写。
+
+### Added
+
+- `foundation-init` 新增决策矩阵：根目录 AGENTS.md / CLAUDE.md 在 greenfield / brownfield 两类场景下的处理路径；并列出 AGENTS.md 必须涵盖的最小章节集（项目身份 / 核心架构 / 仓库布局 / 开发命令 / 代理行为规约 / 常见陷阱 / 相关文档）。
+- `foundation-init` 引入 4 条 Karpathy 编码原则作为 CLAUDE.md 的强制骨架（编码前思考 / 简洁优先 / 精准修改 / 目标驱动执行），每条原则需配 ❌ 反例 + ✅ 正例 + "What this prevents"。
+- `foundation-init` 新增可选的 docs-sync 状态登记步骤：将 AGENTS.md / CLAUDE.md 写入 `.docs-sync-state.json#tracked_docs`，便于后续长期同步。
+- `foundation-init` Step 4 新增自检清单：AGENTS.md ≤ 500 行 / 仓库布局与实际目录一致 / 开发命令均能在根目录执行 / CLAUDE.md 4 条原则齐全 / 不覆盖既有 brownfield 项目铁律 / 已在 project.md 与 config.yaml 引用这两份文件。
+- `foundation-init` 错误字典扩展：补齐 `E001_missingPrerequisiteArtifact` / `E005_contextOverload` / `E010_repeatedFailurePattern` 触发场景说明，并新增 References 导航表。
+- `foundation-init` 新增 References：`agents-md-sync.md`（AGENTS.md 完整章节模板）、`claude-md-principles.md`（4 条编码原则展开）。
+- **模板**：新增 `workflow-steps/long-run-goal-builder` skill —— 为长跑 AI Coding 任务（Codex /goal、Claude Code、Cursor、Kiro autopilot）构建可审计、不假完成、抗漂移的 goal 提示词；激活后按 7 阶段流程澄清需求 / 自动加载 AGENTS.md / 当前 spec / lessons.md / 输出 5 段式 goal 与长跑健康守则；附 6 份 references（context-loading / examples / long-run-health / project-types / scenarios / tool-adapters）。
+
+---
+
 ## [0.0.9] — 2026-05-15
 
 ### Changed
@@ -270,7 +290,8 @@
 
 ## 版本链接
 
-- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.9...HEAD)
+- [Unreleased](https://github.com/NAMEWTA/specforge/compare/v0.0.10...HEAD)
+- [0.0.10](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.10)
 - [0.0.9](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.9)
 - [0.0.8](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.8)
 - [0.0.7](https://github.com/NAMEWTA/specforge/releases/tag/v0.0.7)
