@@ -10,6 +10,17 @@
 
 ---
 
+## [0.0.14] — 2026-05-17
+
+### Added
+
+- **模板**：新增 `ui-ux/codemirror6` skill（`type: ui-ux-rule`，~1534 行）—— 为 AI 代理提供使用 [CodeMirror 6](https://codemirror.net/) 构建浏览器内代码编辑器的程序性知识，禁用范围明确划在 Monaco / CM5 / 服务端文本处理之外：
+  - SKILL.md 主体覆盖：心智模型（不可变 state、事务驱动、扩展可组合、DOM 库托管、位置基线）、`@codemirror/*` 包地图与版本一致性铁律（同 minor 锁定）、Vanilla / React 最小启动模板、State 与事务（`from/to` 引用变更前文档的同时性约束）、扩展四大原语（ViewPlugin / StateField / Facet / StateEffect）选型决策表、Compartment 动态重配（语言 / 主题 / 只读 / 特性开关）、性能规则、React 集成基本规则、反模式速查、调试与诊断
+  - 7 份按需加载的 references：`extensions-primitives.md` / `language-support.md` / `autocomplete-and-lint.md` / `themes-and-keymaps.md` / `panels-tooltips-collab.md` / `react-integration.md` / `migration-cm5-to-cm6.md`
+  - frontmatter 严格遵守 SpecForge 统一 5 字段（`name` / `type` / `description` / `version` / `author`），`description` 控制在 L1 ≤ 200 字契约内
+
+---
+
 ## [0.0.13] — 2026-05-17
 
 ### Added
