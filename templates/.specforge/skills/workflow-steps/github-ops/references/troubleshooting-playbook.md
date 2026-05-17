@@ -200,6 +200,63 @@ Error: Unable to find 'pnpm' executable
 { "name": "specforge" }   // ✅
 ```
 
+### 10. GitHub Release 正文为空 / 仅一行 `Full Changelog`
+
+```
+Release v0.0.10 (Latest)
+Full Changelog: v0.0.9...v0.0.10
+[Source code (zip)] [Source code (tar.gz)]
+```
+
+**原因**：`softprops/action-gh-release@v2` 只设了 `generate_release_notes: true`，而 GitHub 自动生成器从 PR 标题 + label 抽取 changelog。直 push main 的仓库没有 PR 流量，生成器只剩 compare 链接可写。
+
+**修复（workflow 改造）**：在 Create GitHub Release 之前加一步从 `CHANGELOGS.md` 抽取段落，再用 `body_path` 注入。完整 YAML 见 [workflow-yaml-reference.md](workflow-yaml-reference.md) 的 `Extract release notes from CHANGELOGS.md` 步骤；模式说明见 [release-notes-injection.md](release-notes-injection.md)。
+
+**修复（事后回填历史 Release，无需重发版）**：
+
+```bash
+VERSION="0.0.10"
+awk -v v="$VERSION" '
+  $0 ~ "^## \\["v"\\]" { found=1; print; next }
+  found && /^## \[/ { exit }
+  found && /^---[[:space:]]*$/ { next }
+  found { print }
+' CHANGELOGS.md > /tmp/notes.md && \
+  gh release edit "v$VERSION" --notes-file /tmp/notes.md && \
+  rm /tmp/notes.md
+```
+
+**诊断**：
+
+```bash
+# Release body 长度过短就是出问题了
+gh release view v0.0.10 --json body --jq '.body | length'
+
+# workflow 里 Extract release notes 步骤是否存在并 success
+gh run view <run-id> --json jobs \
+  --jq '.jobs[].steps[] | select(.name | test("Extract|Release"))'
+```
+
+### 11. `Extract release notes` 步骤报 "release-notes.md is empty"
+
+**根因**：CHANGELOG 段落标题与 tag 不匹配，awk 抽空。
+
+**自查**：
+
+```bash
+# 实际 CHANGELOG 标题
+grep '^## \[' CHANGELOGS.md | head -5
+
+# 当前 tag 应当对应的标题
+echo "## [${GITHUB_REF_NAME#v}]"
+```
+
+常见问题：
+
+- 全角中括号 `【0.0.10】` 而非半角 `[0.0.10]`
+- 版本号有 `v` 前缀（`## [v0.0.10]`）— awk 期望去前缀的纯数字
+- 段落写错位置（`[Unreleased]` 段还没迁移到正式版本段）
+
 ## 发布成功但找不到包
 
 典型场景：workflow 显示绿色，但 `npm view @scope/pkg` 返回 404。
@@ -244,3 +301,5 @@ npm deprecate @namewta/specforge@0.0.2 "Security issue, use 0.0.3+"
 6. [ ] Workflow 触发器是 `on.push.tags: ['v*']`，没写 branches
 7. [ ] `bin` 路径以 `./` 开头
 8. [ ] `files` 字段不排除构建产物
+9. [ ] **Workflow 包含 `Extract release notes from CHANGELOGS.md` 步骤，且 `Create GitHub Release` 设了 `body_path: release-notes.md`**
+10. [ ] **CHANGELOGS.md 顶部有当前版本对应的 `## [X.Y.Z]` 段落（半角中括号）**

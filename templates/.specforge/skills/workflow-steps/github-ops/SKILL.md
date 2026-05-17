@@ -1,103 +1,106 @@
 ---
 name: github-ops
-description: GitHub 仓库运营与 npm 发布自动化一体化工作流。覆盖 issue 分诊、PR 管理、CI/CD 排错、安全告警监控、Release 准备，以及通过 GitHub Actions 打 tag 触发 npm publish（含 provenance、scoped 包、GitHub Release 联动）的全链路。适用场景：用户让你「check GitHub」「triage issues」「review PRs」「merge」「CI is broken」「release npm package」「publish to npm」「set up release workflow」「CI release failed」「npm provenance」「tag and release」「publish scoped package」，或任何需要基于 gh CLI 进行 GitHub 操作、npm 发布自动化、仓库治理、社区健康维护的任务。
+type: workflow-step
+description: >-
+  GitHub 仓库运营 + npm 包 tag 触发发布的一体化工作流。覆盖 issue/PR 分诊、CI 排障、
+  安全告警，以及 npm publish（provenance / scoped）+ 自动 GitHub Release（CHANGELOG 段落注入）。
+  触发词：github、gh、release、publish、tag、npm、provenance、changelog、triage、ci broken、版本发布。
+version: "1.1.0"
+author: "wta"
 ---
 
-# GitHub 运营与发布工作流
+# GitHub 运营与 npm 发布工作流
 
-用 `gh` CLI + GitHub Actions 闭环管理一个开源/私有仓库：日常治理（issue、PR、CI、安全）+ 发布上线（tag 触发 npm publish + GitHub Release）。
+把仓库当成一个持续运转的系统:**入口**是 issue / PR 流入,**出口**是带 provenance 签名的 npm 包 + 内容完整的 GitHub Release。中间是 CI/CD 与安全监控。
 
-本技能把仓库当成一个持续运转的系统：入口是 issue/PR 的流入，出口是带 provenance 的 npm 包与 GitHub Release。两端之间是 CI/CD 与安全监控。
+本技能给出端到端 SOP,具体细节按主题下沉到 [references/](references/),按需加载。
 
-## 何时激活
+## 1. 何时激活
 
-**日常运营**
+**日常治理**
 
-- 分诊、打标签、回复 issue；清理 stale item
-- 审查 PR、检查 CI 状态、合并或驳回
-- 排查失败的 CI 任务（区分真实失败与 flaky）
+- 分诊 issue、清理 stale、回复社区
+- 审查 PR、查 CI 状态、合并或驳回
+- 排查失败的 CI 任务(区分真实失败与 flaky)
 - 监控 Dependabot / secret scanning 告警
 
-**发布上线**
+**npm 发布上线**
 
 - 为 npm 包搭建 tag 触发的 release pipeline
-- 排查失败的 `Release` workflow（E403/E404/E422/EUSAGE/provenance 错误）
+- 排查失败的 `Release` workflow(E403 / E404 / E422 / EUSAGE / provenance 错误)
 - 首次发布 scoped 包 `@scope/name`
 - 从手动 `npm publish` 迁移到 tag 驱动的 CI 发布
-- 切新版本 tag（`vX.Y.Z`）并跟踪上线
+- 切新版本 tag(`vX.Y.Z`)并跟踪上线
+- **GitHub Release 正文为空 / 没有 changelog 内容**(本技能的标准注入模式)
+- 事后补全 / 修订已发布版本的 Release notes
 
-## 前置工具
+## 2. 前置工具
 
-- 已安装并登录 `gh`（`gh auth login`）
-- 仓库目标分支有 Actions 权限，能读写 secrets
-- 发布类任务额外需要：npm 账号 + Granular Access Token（见 [references/setup-npm-token.md](references/setup-npm-token.md)）
+- 已安装并登录 `gh`(`gh auth login`)
+- 仓库目标分支有 Actions 权限,能读写 secrets
+- 发布类任务额外需要:npm 账号 + Granular Access Token(详见 [references/setup-npm-token.md](references/setup-npm-token.md))
 
-## 两条核心流
+## 3. 两条核心流
 
-### 流 1：日常治理
+### 流 1:日常治理
 
 ```
 issue/PR 流入
-  → 分诊（类型 + 优先级 + 标签）
-  → 审查（CI 状态 + 变更质量 + 测试）
-  → 合并 or 清理 stale
+  → 分诊(类型 + 优先级 + 标签)
+  → 审查(CI 状态 + 变更质量 + 测试)
+  → 合并 / 清理 stale
   → 安全告警每周巡检
 ```
 
-### 流 2：发布上线
+详细 SOP:
+- [references/issue-pr-triage.md](references/issue-pr-triage.md) — 标签体系 + 社区 PR 标准
+- [references/ci-and-security-ops.md](references/ci-and-security-ops.md) — CI 排障 + 安全告警巡检
+
+### 流 2:npm 发布上线
 
 ```
-package.json 就绪 (name/version/bin/files/repository)
-  → .github/workflows/release.yml 存在（权限齐全）
-  → NPM_TOKEN secret 配置（Granular + 2FA bypass）
-  → git push main → git tag vX.Y.Z → git push origin vX.Y.Z
-  → Release workflow：lint/test/build → npm publish --provenance → GitHub Release
-  → 三端验证：npm view / gh release list / gh run list
+package.json 就绪 (name / version / repository / bin / files)
+  → CHANGELOGS.md [Unreleased] 段落已写
+  → .github/workflows/release.yml 包含 release-notes 注入步骤
+  → NPM_TOKEN secret 配置(Granular + bypass 2FA)
+  → 版本 bump → release commit → 打 tag(指向 release commit)→ push
+  → Release workflow:verify-tag → lint → test → build → verify-bin
+                    → extract-changelog → npm publish --provenance
+                    → Create GitHub Release(body_path = release-notes.md)
+  → 三端验证:npm view / gh release view / gh run view
 ```
 
-## 日常治理操作手册
+每个阶段对应一份 reference,**按需加载**:
+
+| 阶段 | 参考 |
+|------|------|
+| package.json 字段 | [references/package-json-checklist.md](references/package-json-checklist.md) |
+| NPM_TOKEN 配置 | [references/setup-npm-token.md](references/setup-npm-token.md) |
+| release.yml 完整模板 + 注解 | [references/workflow-yaml-reference.md](references/workflow-yaml-reference.md) |
+| **CHANGELOG → Release notes 注入** | [references/release-notes-injection.md](references/release-notes-injection.md) |
+| 版本 bump → tag → push 完整流程 | [references/version-bump-flow.md](references/version-bump-flow.md) |
+| 失败排查手册 | [references/troubleshooting-playbook.md](references/troubleshooting-playbook.md) |
+
+## 4. 日常治理快查
 
 ### Issue 分诊
-
-**分类维度**：
-
-- 类型：bug / feature-request / question / documentation / enhancement / duplicate / invalid / good-first-issue
-- 优先级：critical（破坏/安全）/ high（显著影响）/ medium / low（外观）
-
-**标准流程**：
-
-1. 读 title、body、comments
-2. 搜重复（`gh issue list --search "关键词" --state all --limit 20`）
-3. 打标签（`gh issue edit <N> --add-label "bug,high-priority"`）
-4. 问题类：请求复现步骤；重复类：引用原 issue 并加 `duplicate`
-5. 新手友好的加 `good-first-issue`
 
 ```bash
 gh issue list --search "关键词" --state all --limit 20
 gh issue edit <number> --add-label "bug,high-priority"
-gh issue comment <number> --body "感谢反馈，能否补充复现步骤？"
+gh issue comment <number> --body "感谢反馈,能否补充复现步骤?"
 ```
+
+类型维度:bug / feature-request / question / documentation / enhancement / duplicate / good-first-issue。
+优先级:critical / high / medium / low。
+完整流程见 [issue-pr-triage.md](references/issue-pr-triage.md)。
 
 ### PR 审查
 
-审前检查：
-
-1. CI：`gh pr checks <N>`
-2. 可合并性：`gh pr view <N> --json mergeable`
-3. 年龄与最后活跃时间
-4. 超过 5 天无 review 的标记跟进
-5. 社区 PR：确认测试与规范
-
-### Stale 策略
-
-- Issue 14 天无活动 → 加 `stale` 并询问近况
-- PR 7 天无活动 → 询问是否仍在推进
-- 30 天无响应 → 加 `closed-stale` 并关闭
-
 ```bash
-gh issue list --label "stale" --state open
-gh pr list --json number,title,updatedAt \
-  --jq '.[] | select(.updatedAt < "2026-03-01")'
+gh pr checks <N>                              # CI 状态
+gh pr view <N> --json mergeable               # 可合并性
+gh pr list --json number,title,updatedAt      # 活跃度盘点
 ```
 
 ### CI 排障
@@ -108,251 +111,172 @@ gh run view <run-id> --log-failed
 gh run rerun <run-id> --failed
 ```
 
-- 区分真实失败 vs flaky：看是否可稳定复现
-- 真实失败：定位根因并提修复
-- Flaky：记录模式，别只 rerun 了事
+区分真实失败与 flaky:能稳定复现 = 真实,先定位根因再 rerun。
 
 ### 安全告警
 
 ```bash
-# Dependabot 告警
 gh api repos/{owner}/{repo}/dependabot/alerts \
   --jq '.[].security_advisory.summary'
-
-# Secret scanning
 gh api repos/{owner}/{repo}/secret-scanning/alerts --jq '.[].state'
-
-# 自动合并安全的依赖升级
-gh pr list --label "dependencies" --json number,title
 ```
 
-每周至少一次巡检；critical/high 立即处理。
+每周一次巡检;critical / high 立即处理。
 
-## 发布上线操作手册
+## 5. npm 发布快查
 
-### 发布前自检清单
+### 5.1 发布前自检
 
-发布新包或新版本前，逐项确认。任意一项缺失都可能让 workflow 失败。
+**package.json 关键字段**
 
-**package.json 必备**：
+- `name` — scoped 包必须匹配你拥有的 npm scope
+- `version` — 严格等于即将打的 tag(`v0.0.10` ↔ `"0.0.10"`)
+- `repository.url` — **provenance 强制要求**,严格匹配 GitHub repo
+- `bin` 路径以 `./` 开头
+- `files` — 显式白名单,防止源码 / 测试发到 npm
+- `prepublishOnly` 跑完整质量闸(`lint && test && build`)
 
-- `name` — scoped 包要匹配你拥有的 npm scope（如 `@namewta/specforge`）
-- `version` — 严格等于将要打的 tag（`v0.0.2` ↔ `"0.0.2"`）
-- `repository.url` — **npm provenance 强制要求**，必须匹配实际 GitHub 仓库
-- `bin` 路径以 `./` 开头（如 `"./dist/cli/index.js"`）
-- `files` — 显式白名单，防止把源码/测试发到 npm
-- `type: "module"` 与 `exports` 配置正确
-- `prepublishOnly` 跑完整质量闸（`lint && test && build`）
+完整字段说明见 [package-json-checklist.md](references/package-json-checklist.md)。
 
-完整字段解释见 [references/package-json-checklist.md](references/package-json-checklist.md)。
+**GitHub 仓库关键配置**
 
-**GitHub 仓库必备**：
+- `NPM_TOKEN` 是 **Granular Access Token**,bypass 2FA 已开
+- Workflow 声明 `id-token: write` + `contents: write`
+- `release.yml` 包含 **release-notes 注入步骤**(见下文 5.3)
 
-- `NPM_TOKEN` secret 是 **Granular Access Token**（不是 Classic）、2FA bypass 已开、读写权限覆盖目标包/scope
-- Actions 已启用，workflow 文件已推到默认分支
-- Workflow 中声明 `id-token: write` + `contents: write`
+### 5.2 完整发布流程(标准 SOP)
 
-**首次发布 scoped 包额外**：
+```bash
+# 1. 把 [Unreleased] 内容迁移到新版本段落
+#    详见 references/version-bump-flow.md 的 CHANGELOG 维护契约
 
-- 向 `npm publish` 传 `--access public`（scoped 默认 private）
-- npm 上该 scope 已存在且由你拥有
+# 2. bump 版本 + 落 release commit
+#    package.json + CHANGELOGS.md 一并提交
+git add package.json CHANGELOGS.md
+git commit -m "chore(release): vX.Y.Z"
 
-### release.yml 模板
+# 3. 推 main
+git push origin main
 
-存放在 `.github/workflows/release.yml`，只在 `v*` tag 上触发。
+# 4. tag 精确指向 release commit(后续若有 docs commit 不应被 tag)
+git tag vX.Y.Z <release-commit-sha>
+git push origin vX.Y.Z
+
+# 5. 盯 workflow
+gh run watch
+```
+
+完整端到端流程(含 docs-sync state 推进、`pnpm check` 预演、tag 指向策略)见 [version-bump-flow.md](references/version-bump-flow.md)。
+
+### 5.3 Release notes 不能为空 ← 本技能强约束
+
+**问题**:`softprops/action-gh-release@v2` 仅设 `generate_release_notes: true` 时,GitHub 自动生成器从 PR 标题 + label 抽取分类条目。**直 push main 流程**下没有 PR 流量,生成器只剩 `Full Changelog: vX...vY` 一行,Release 正文几乎是空的。
+
+**标准修复**:从 `CHANGELOGS.md` 抽取当前 tag 对应的版本段落,通过 `body_path` 注入 Release 正文。
 
 ```yaml
-name: Release
+# .github/workflows/release.yml(关键步骤,完整文件见 workflow-yaml-reference.md)
+- name: Extract release notes from CHANGELOGS.md
+  run: |
+    VERSION="${GITHUB_REF_NAME#v}"
+    awk -v v="$VERSION" '
+      $0 ~ "^## \\["v"\\]" { found=1; print; next }
+      found && /^## \[/ { exit }
+      found && /^---[[:space:]]*$/ { next }
+      found { print }
+    ' CHANGELOGS.md > release-notes.md
 
-on:
-  push:
-    tags:
-      - 'v*'
+    if [ ! -s release-notes.md ]; then
+      echo "::warning::CHANGELOGS.md 中未找到 [$VERSION] 段落,回退到自动生成。"
+      echo "See [CHANGELOGS.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOGS.md) for details." > release-notes.md
+    fi
 
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    name: Release to npm
-    permissions:
-      id-token: write # npm provenance (OIDC)
-      contents: write # 创建 GitHub Release
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Verify tag matches package version
-        run: |
-          TAG="${{ github.ref }}"
-          TAG_VERSION="${TAG#refs/tags/v}"
-          PACKAGE_VERSION=$(node -e "console.log(require('./package.json').version)")
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
-            exit 1
-          fi
-
-      - name: Run lint
-        run: pnpm lint
-
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
-
-      - name: Verify bin entry
-        run: node scripts/verify-bin.mjs
-
-      # npm publish 在 GitHub Release 之前：
-      # publish 不可回滚，先做最危险的动作。
-      # 若 Release 步骤失败，npm 产物至少已上线。
-      - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: success()
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+- name: Create GitHub Release
+  uses: softprops/action-gh-release@v2
+  if: success()
+  with:
+    tag_name: ${{ github.ref_name }}
+    name: Release ${{ github.ref_name }}
+    body_path: release-notes.md          # ← 关键:CHANGELOG 段落注入
+    generate_release_notes: true         # ← 与 body_path 共存:CHANGELOG 在前,自动 What's Changed 在后
+    draft: false
+    prerelease: false
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-逐行注解与常见变体见 [references/workflow-yaml-reference.md](references/workflow-yaml-reference.md)。
-
-关键开关：
-
-- `--provenance`：sigstore 签名，依赖 `id-token: write` 与正确的 `repository.url`
-- `--access public`：scoped 包首次发布必需
-- tag-version 校验步骤：防止版本漂移直接发坏版本
-
-### 打 tag 与发布流程
-
-workflow 与 `package.json` 就绪后，发布只是三条命令：
+**事后修复历史 Release**(workflow 改造之前发的版本):
 
 ```bash
-# 1. 确保 main 干净且已推送
-git status
-git push origin main
-
-# 2. 打 tag（版本号必须与 package.json 一致）
-git tag v0.0.2
-git push origin v0.0.2
-
-# 3. 盯 workflow
-gh run watch   # 或：gh run list --workflow release.yml --limit 3
+# 抽取 + 回填一次性命令
+awk -v v="X.Y.Z" '
+  $0 ~ "^## \\["v"\\]" { found=1; print; next }
+  found && /^## \[/ { exit }
+  found && /^---[[:space:]]*$/ { next }
+  found { print }
+' CHANGELOGS.md > /tmp/notes.md && \
+gh release edit vX.Y.Z --notes-file /tmp/notes.md
 ```
 
-### 重试失败的发布
+完整模式(含多语言 CHANGELOG、PR 流程下的 `.github/release.yml` 配置、awk 边界用例)见 [release-notes-injection.md](references/release-notes-injection.md)。
 
-Workflow 在 `npm publish` 之前都是幂等的：
+### 5.4 重试失败的发布
 
-- publish 前失败：修好后删旧 tag 重推同一版本号
-- publish 已成功但后续失败：**不要**改版本号，只补执行后续步骤（手动 `gh release create`）
-- publish 本身失败（tarball 未上传）：删 tag、改代码、重新打同 tag
+Workflow 在 `npm publish` 之前都是幂等的:
+
+- publish 前失败:删旧 tag 重推同一版本号
+- publish 已成功但后续失败(创建 Release 出错):**不要**改版本号,手动补 `gh release create`
+- publish 本身失败(tarball 未上传):删 tag、改代码、重打同 tag
 
 ```bash
-# 删本地与远端 tag
-git tag -d v0.0.2
-git push origin :refs/tags/v0.0.2
-
-# 修复、提交、推送
-git add . && git commit -m "fix: ..."
-git push origin main
-
-# 重新打 tag
-git tag v0.0.2
-git push origin v0.0.2
+git tag -d vX.Y.Z
+git push origin :refs/tags/vX.Y.Z
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
-**npm 不允许重发相同 `version`**——哪怕 unpublish 过也不行。若 publish 真的上传成功，只能 bump 到下一个补丁（`0.0.3`）。
+> **铁律**:npm 不允许重发相同 `version`——unpublish 过也不行。若 publish 真的上传成功,只能 bump 到下一个补丁。
 
-### Release 准备（非发布本身）
+完整失败案例库见 [troubleshooting-playbook.md](references/troubleshooting-playbook.md)。
 
-准备发布一个新版本时的工作流：
+## 6. 质量闸门
 
-1. 确认 main 上 CI 全绿
-2. 梳理未发布变更：`gh pr list --state merged --base main --search "merged:>YYYY-MM-DD"`
-3. 生成 changelog（workflow 会自动，手动也可）
-4. bump 版本 → 打 tag → push → 走 release pipeline
-
-```bash
-# 列最近一次发布以来合并的 PR
-gh pr list --state merged --base main --search "merged:>2026-03-01"
-
-# 预发（可选）
-gh release create v1.3.0-rc1 --prerelease --title "v1.3.0 RC1"
-```
-
-## Release 故障排查
-
-遇到失败先走统一诊断：
-
-```bash
-gh run list --workflow release.yml --limit 5 \
-  --json databaseId,conclusion,displayTitle
-gh run view <databaseId> --log-failed 2>&1 \
-  | grep -E "npm error|npm warn publish|##\[error\]|Error:" | head -30
-```
-
-常见错误速查：
-
-| 错误                                            | 根因                             | 快速修复                                                  |
-| ----------------------------------------------- | -------------------------------- | --------------------------------------------------------- |
-| `E404 Not found` 发布时                         | 包名被占用或无权限               | 改 scoped 名或联系 owner                                  |
-| `E403 Two-factor authentication required`       | Classic token 或未开 2FA bypass  | 改用 Granular Token 并勾选 bypass                         |
-| `EUSAGE must set access to public`              | scoped 包未加 `--access public`  | 加上 `--access public`                                    |
-| `E422 Error verifying sigstore provenance`      | `repository.url` 缺失或不匹配    | 补 `repository.url`，严格匹配 GitHub repo                 |
-| `Tag version X does not match package.json Y`   | 版本漂移                         | 删 tag、改 `package.json`、重打                           |
-| `bin[name] script was invalid and removed`      | `bin` 路径缺 `./`                | 改成 `"./dist/..."`（也可能是 npm 误报，看最终有无 `+ @scope/pkg@version`） |
-| Workflow 没触发                                 | tag 不匹配 `v*` 或未推送         | 确认 tag 名并 `git push origin <tag>`                     |
-
-完整失败案例与修复流程见 [references/troubleshooting-playbook.md](references/troubleshooting-playbook.md)。
-
-## 质量闸门
-
-任何一次任务完成前，按下面的清单自检：
+任务完成前按下面清单自检:
 
 **治理类**
 
-- 所有分诊的 issue 都有合适标签
-- 没有超过 7 天未 review/comment 的 PR
-- CI 失败都做了根因分析（不只是 rerun）
+- 分诊的 issue 都有合适标签
+- 没有超过 7 天未 review / comment 的 PR
+- CI 失败做了根因分析(不只是 rerun)
 - 安全告警已确认或登记跟进
 
-**发布类**
+**发布类**(三端必须全绿)
 
 ```bash
-# 1. npm 包已上线（CDN 传播需 30–60 秒）
-npm view @namewta/specforge version
-npm view @namewta/specforge dist-tags
+# 1. npm 包已上线(CDN 传播 30–60 秒)
+npm view @scope/pkg version
+npm view @scope/pkg dist-tags
 
-# 2. GitHub Release 存在且标记为 Latest
+# 2. GitHub Release 存在 / 标记为 Latest / 正文非空
 gh release list --limit 3
-gh release view v0.0.2
+gh release view vX.Y.Z --json name,tagName,isDraft,isPrerelease,body
 
-# 3. Workflow 最终状态为 success
+# 3. Workflow 最终状态为 success,所有步骤都执行(尤其是 extract-changelog)
 gh run list --workflow release.yml --limit 1 --json conclusion
+gh run view <id> --json jobs --jq '.jobs[].steps[] | {name, conclusion}'
 ```
 
-三端任一缺失都说明发布未完成，不要对外宣布。
+**Release 正文检查**:`gh release view` 的 `body` 字段必须包含来自 CHANGELOG 的 `### Changed` / `### Added` 等小节。仅 `Full Changelog: ...` 一行视为发布残次品,需走 5.3 的事后修复。
 
-## 相关资料
+## 7. 相关资料
 
-深入细节见 [references/](references/)：
+按需加载,**不要一次性全读**:
 
-- [setup-npm-token.md](references/setup-npm-token.md) — Granular Access Token 生成与 GitHub Secret 绑定
-- [package-json-checklist.md](references/package-json-checklist.md) — 发布前逐字段检查清单
-- [workflow-yaml-reference.md](references/workflow-yaml-reference.md) — `release.yml` 完整注解与变体
-- [troubleshooting-playbook.md](references/troubleshooting-playbook.md) — 真实失败记录的排错手册
-- [issue-pr-triage.md](references/issue-pr-triage.md) — Issue/PR 分诊标签体系与社区 PR 标准
-- [ci-and-security-ops.md](references/ci-and-security-ops.md) — CI 排障与安全告警巡检模板
+- [setup-npm-token.md](references/setup-npm-token.md) — Granular Access Token 生成 + GitHub Secret 绑定
+- [package-json-checklist.md](references/package-json-checklist.md) — 发布前 package.json 逐字段检查
+- [workflow-yaml-reference.md](references/workflow-yaml-reference.md) — `release.yml` 完整 YAML 注解 + 变体
+- [release-notes-injection.md](references/release-notes-injection.md) — **CHANGELOG → Release notes 注入完整方案**(本技能 v1.1.0 新增)
+- [version-bump-flow.md](references/version-bump-flow.md) — **版本 bump → tag → push 端到端 SOP**(本技能 v1.1.0 新增)
+- [troubleshooting-playbook.md](references/troubleshooting-playbook.md) — 真实失败案例 + 排错清单
+- [issue-pr-triage.md](references/issue-pr-triage.md) — Issue / PR 分诊标签体系 + 社区 PR 标准
+- [ci-and-security-ops.md](references/ci-and-security-ops.md) — CI 排障 + 安全告警巡检模板
