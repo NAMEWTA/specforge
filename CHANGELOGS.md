@@ -10,6 +10,23 @@
 
 ---
 
+## [0.0.13] — 2026-05-17
+
+### Added
+
+- **模板**：新增 `tools/npm-cicd-release` tool-command（~619 行）—— 把 `git-commit-template` / `docs-sync` / `github-ops` 三个 workflow-step skill 串成单向 npm 包发布流水线（Phase 0–6）：
+  - **Phase 0 前置检测**：嗅探 `.github/workflows/release.yml` 是否含 `npm publish` / `pnpm publish` / `yarn publish` / `JS-DevTools/npm-publish` / `cycjimmy/semantic-release-action` / `changesets/action` 等模式，决定 Phase 5 是否做 npm 端校验
+  - **Phase 1 Commit**：调用 `git-commit-template` Iron Law（lint + test 全绿、Conventional Commits、粒度审查）
+  - **Phase 2 Docs Sync**：调用 `docs-sync` 6 步 SOP（不在此阶段推进 `last_sync_sha`，延后到 Phase 6；保留 `[Unreleased]` 占位段落）
+  - **Phase 3 bump + tag**：调用 `github-ops` SOP（迁移 `[Unreleased]` → `[X.Y.Z]`、`pnpm check`、release commit、tag 严格指向 release commit SHA、push main + tag）
+  - **Phase 4 监控**：`gh run watch` 关注 Verify tag / Extract release notes / Publish to npm / Create GitHub Release 等关键步骤
+  - **Phase 5 三端验证（条件分支）**：`PUBLISH_TO_NPM=true` 走 `npm view + gh release view + gh run`；`false` 仅校验 GitHub Release 与 workflow，跳过 `npm view`
+  - **Phase 6 state 推进**：原子写 `.docs-sync-state.json`，commit `docs: 推进 docs-sync 基线至 vX.Y.Z release commit`
+  - 配套 3 份 references：`preflight-checklist.md`（11 项前置探测）/ `publish-detection.md`（release.yml 形态判定矩阵 + 误判排除）/ `failure-recovery.md`（4 类失败场景的回滚剧本 + 与 P9 的衔接）
+  - 通过 `command-creator` skill 的 `quick_validate_command.py` 结构校验
+
+---
+
 ## [0.0.12] — 2026-05-17
 
 ### Added
