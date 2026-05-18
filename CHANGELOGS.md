@@ -10,6 +10,27 @@
 
 ---
 
+## [0.0.16] — 2026-05-18
+
+### Added
+
+- **模板**：新增 `workflow-steps/node-cli-development` skill（`type: workflow-step`，~1425 行）—— 用 `citty@0.2.2` + `@clack/prompts@1.4.0` 构建 Node.js CLI 的端到端工作流，覆盖命令路由、参数 schema、终端交互、异步任务 UI 与 ESM 发布：
+  - SKILL.md 主体：最小可运行骨架（`defineCommand` / `runMain` / `assertOk` 取消工具）、参数类型选型表（positional / string / boolean / number / enum）、prompt 类型选型表（text / password / confirm / select / multiselect / autocomplete / path / date 等 §3.4–§3.21）、异步反馈选型表（spinner / tasks / progress / taskLog / stream）、10 条必守原则（ESM `.js` 后缀 / 取消检查 / spinner API 迁移 / CI `--yes` 支持等）、端到端任务清单
+  - `references/citty-api.md`：`defineCommand` / 子命令懒加载 / args schema / 插件 API / 自定义 help
+  - `references/clack-prompts-api.md`：全部 prompt 类型 API（§3.4–§3.21）含参数选项与示例
+  - `references/templates.md`：项目初始化目录结构 / 生产级 CLI 完整模板 / `package.json` + bin shebang 配置
+  - `references/patterns.md`：CI 检测 / 错误恢复 / 动态选项 / 流式输出等实战模式
+  - `references/pitfalls.md`：ESM 陷阱 / `spinner.stop()` API 迁移 / 0.2.x 类型变化速查清单
+
+### Changed
+
+- **模板**：整合 `release-deploy` command 的 references 文档，减少碎片化：
+  - 删除独立文件 `changelog-voice-guide.md` / `pr-body-template.md` / `version-management-guide.md`（内容合并进主工作流）
+  - 更新 `archive-patterns.md` 明确 Step 1–3 引用关系
+  - 精简 `release-deploy.md` 指向整合后的文档
+
+---
+
 ## [0.0.15] — 2026-05-17
 
 ### Fixed
