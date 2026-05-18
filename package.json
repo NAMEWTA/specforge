@@ -59,7 +59,7 @@
     "globby": "14.1.0",
     "inquirer": "12.9.6",
     "js-yaml": "4.1.0",
-    "ora": "8.2.0",
+    "ora": "9.4.0",
     "zod": "4.1.5"
   },
   "devDependencies": {
