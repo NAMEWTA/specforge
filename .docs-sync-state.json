@@ -8,13 +8,13 @@
     "AGENTS.md",
     "CHANGELOGS.md"
   ],
-  "last_sync_sha": "46096f7704f0ff0781dffa93de6d8a1e340cf6f0",
-  "last_sync_short": "46096f7",
-  "last_sync_commit_subject": "chore(release): v0.0.15",
-  "last_sync_commit_date": "2026-05-17T22:36:39+08:00",
-  "last_sync_run_at": "2026-05-17T14:41:27Z",
-  "previous_sync_sha": "01ca97e2776b87f4aca9b970d368d7bfa452050b",
-  "total_syncs": 10,
+  "last_sync_sha": "7f0ff19ca13dafa8de7d7ba9e958d7482a19c3f0",
+  "last_sync_short": "7f0ff19",
+  "last_sync_commit_subject": "chore(release): v0.0.16",
+  "last_sync_commit_date": "2026-05-18T02:42:34Z",
+  "last_sync_run_at": "2026-05-18T02:48:31Z",
+  "previous_sync_sha": "46096f7704f0ff0781dffa93de6d8a1e340cf6f0",
+  "total_syncs": 11,
   "synced_docs": [
     "CHANGELOGS.md"
   ]
